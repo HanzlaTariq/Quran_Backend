@@ -1,0 +1,62 @@
+import mongoose from 'mongoose';
+
+const classSchema = new mongoose.Schema({
+  ulma: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Ulma',
+    required: true
+  },
+  student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+    required: true
+  },
+  course: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Course',
+    required: true
+  },
+  date: {
+    type: Date,
+    required: true
+  },
+  utcStart: {
+    type: Date,
+    required: true
+  },
+  utcEnd: {
+    type: Date,
+    required: true
+  },
+  topic:{
+    type: String,
+    required: true
+  },
+  notes:{
+    type: String,
+      default: '',
+      
+  },
+  status: {
+    type: String,
+    enum: ['scheduled', 'ongoing', 'completed', 'cancelled'],
+    default: 'scheduled'
+  },
+  attendance: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Attendance'
+  },
+  progress: {
+    paraCompleted: Number,
+    surahCompleted: String,
+    remarks: String
+  },
+  recordingUrl: String,
+  meetingLink: String,
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+export default mongoose.model('Class', classSchema);

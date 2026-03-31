@@ -1,0 +1,104 @@
+import mongoose from 'mongoose';
+
+const feeSchema = new mongoose.Schema({
+  student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+    required: true
+  },
+  enrollment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Enrollment',
+    required: true
+  },
+  ulma: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Ulma'
+  },
+  amount: {
+    type: Number,
+    required: true,
+    default: 0
+  },
+  monthlyFee: {
+    type: Number,
+    required: true
+  },
+  dueDate: {
+    type: Date,
+    required: true
+  },
+  paymentDeadline: {
+    type: Date, // 5 days after dueDate
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'paid', 'overdue', 'cancelled'],
+    default: 'pending'
+  },
+  paymentDate: {
+    type: Date
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['card', 'bank', 'easypaisa', 'jazzcash', 'cash', 'other']
+  },
+  transactionId: {
+    type: String
+  },
+  invoiceNumber: {
+    type: String,
+    unique: true
+  },
+  description: {
+    type: String,
+    default: 'Monthly Tuition Fee'
+  },
+  notes: {
+    type: String
+  },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
+  receiptUrl: {
+    type: String
+  }
+}, {
+  timestamps: true
+});
+
+// Generate invoice number before saving
+feeSchema.pre('save', async function() {
+  if (!this.invoiceNumber) {
+    const count = await this.constructor.countDocuments();
+    this.invoiceNumber = `INV-${new Date().getFullYear()}-${String(count + 1).padStart(5, '0')}`;
+  }
+  
+  // Set payment deadline (5 days after due date)
+  if (this.dueDate && !this.paymentDeadline) {
+    const deadline = new Date(this.dueDate);
+    deadline.setDate(deadline.getDate() + 5);
+    this.paymentDeadline = deadline;
+  }
+  
+  // Update status to overdue if past deadline
+  if (this.paymentDeadline && new Date() > this.paymentDeadline && this.status === 'pending') {
+    this.status = 'overdue';
+  }
+});
+
+// Update enrollment billing status when fee is paid
+feeSchema.post('save', async function(doc) {
+  if (doc.status === 'paid') {
+    const Enrollment = mongoose.model('Enrollment');
+    await Enrollment.findByIdAndUpdate(doc.enrollment, {
+      'billing.feeStatus': 'paid',
+      'billing.currentMonth': new Date().toISOString().slice(0, 7)
+    });
+  }
+});
+
+const Fee = mongoose.model('Fee', feeSchema);
+export default Fee;
