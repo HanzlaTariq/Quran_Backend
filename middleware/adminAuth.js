@@ -1,4 +1,4 @@
-// backend/middleware/adminAuth.js 111
+// backend/middleware/adminAuth.js
 
 import jwt from 'jsonwebtoken';
 import asyncHandler from 'express-async-handler';
