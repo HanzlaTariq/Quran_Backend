@@ -1,5 +1,6 @@
 import express from 'express';
 import {createServer} from 'node:http';
+import {resolve,join} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {existsSync} from 'node:fs';
 import mongoose from 'mongoose';
@@ -19,27 +20,25 @@ mongoose.set('strictQuery',true);mongoose.set('sanitizeFilter',false); // Inputs
 await mongoose.connect(process.env.MONGODB_URI,{serverSelectionTimeoutMS:10000});
 const app=express(),server=createServer(app);app.disable('x-powered-by');
 const hops=Number(process.env.TRUST_PROXY ?? (process.env.VERCEL==='1'?'1':'0'))||0;if(hops)app.set('trust proxy',hops);
-app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'","'unsafe-inline'","https://fonts.googleapis.com"],fontSrc:["'self'","https://fonts.gstatic.com"],imgSrc:["'self'",'data:'],connectSrc:["'self'",'wss:'],mediaSrc:["'self'",'blob:','https://cdn.islamic.network'],objectSrc:["'none'"],frameAncestors:["'none'"],upgradeInsecureRequests:process.env.NODE_ENV==='production'?[]:null}},crossOriginEmbedderPolicy:false,referrerPolicy:{policy:'no-referrer'}}));
+app.use(helmet({contentSecurityPolicy:{directives:{defaultSrc:["'self'"],scriptSrc:["'self'"],styleSrc:["'self'","'unsafe-inline'","https://fonts.googleapis.com"],fontSrc:["'self'","https://fonts.gstatic.com"],imgSrc:["'self'",'data:'],connectSrc:["'self'",'wss:'],mediaSrc:["'self'",'blob:','https://cdn.islamic.network'],frameSrc:["'self'",'https://*.daily.co'],objectSrc:["'none'"],frameAncestors:["'none'"],upgradeInsecureRequests:process.env.NODE_ENV==='production'?[]:null}},crossOriginEmbedderPolicy:false,referrerPolicy:{policy:'no-referrer'}}));
+app.use((req,res,next)=>{res.set('Permissions-Policy','camera=(self "https://*.daily.co"), microphone=(self "https://*.daily.co"), display-capture=(self "https://*.daily.co"), autoplay=(self "https://*.daily.co"), fullscreen=(self "https://*.daily.co"), geolocation=()');next();});
 app.use(cors({origin:(origin,cb)=>{if(!origin||origins().includes(origin))cb(null,true);else cb(Object.assign(new Error('Origin not allowed.'),{status:403}));},credentials:true}));
 app.use('/api',limiter('api',{windowMs:15*60000,limit:1200,standardHeaders:'draft-8',legacyHeaders:false,message:{message:'Request limit reached. Try again shortly.'}}));
 app.use(express.json({limit:'320kb',strict:true}));app.use(cookieParser());
 app.use('/api',(req,res,next)=>{res.set('Cache-Control','private, no-store, max-age=0');next();});
 app.get('/',(req,res,next)=>process.env.VERCEL==='1'?res.json({service:'Noor Academy API',health:'/api/health'}):next());
-app.get('/api/health',(req,res)=>res.json({status:mongoose.connection.readyState===1?'ok':'unavailable',version:'2.1.0'}));
+app.get('/api/health',(req,res)=>res.json({status:mongoose.connection.readyState===1?'ok':'unavailable',version:'2.2.0'}));
 app.use('/api',attachSession,csrf,(req,res,next)=>{
   if(['POST','PUT','PATCH'].includes(req.method)&&(!req.body||typeof req.body!=='object'||Array.isArray(req.body)))return res.status(400).json({message:'Send a JSON object as the request body.'});
   next();
 });
 app.use('/api/auth',auth);
-app.get('/api/rtc-config',protect,(req,res)=>{
-  const iceServers=[{urls:'stun:stun.l.google.com:19302'}];if(process.env.TURN_URL)iceServers.push({urls:process.env.TURN_URL,username:process.env.TURN_USERNAME,credential:process.env.TURN_PASSWORD});
-  res.set('Cache-Control','no-store');res.json({iceServers,turnConfigured:!!process.env.TURN_URL});
-});
+app.get('/api/rtc-config',protect,(req,res)=>res.status(410).json({message:'Legacy video signaling is retired. Use the embedded classroom join endpoint.'}));
 const io=await sockets(server);app.set('io',io);app.use('/api/chat',chat);app.use('/api',booking);app.use('/api',academy);
 app.use('/api',(req,res)=>res.status(404).json({message:'API endpoint not found.'}));
-const dist=fileURLToPath(new URL('../../frontend/dist/',import.meta.url));
-if(process.env.VERCEL!=='1'&&existsSync(`${dist}index.html`)){
-  app.use(express.static(dist,{maxAge:'1h',index:false}));app.get('/{*path}',(req,res)=>res.sendFile(`${dist}index.html`));
+const dist=process.env.FRONTEND_DIST?resolve(process.env.FRONTEND_DIST):fileURLToPath(new URL('../../Quran_Frontend-main/dist/',import.meta.url));
+if(process.env.VERCEL!=='1'&&existsSync(join(dist,'index.html'))){
+  app.use(express.static(dist,{maxAge:'1h',index:false}));app.get('/{*path}',(req,res)=>res.sendFile(join(dist,'index.html')));
 }
 app.use((err,req,res,next)=>{
   if(res.headersSent)return next(err);

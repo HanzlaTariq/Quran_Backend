@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const attendanceSchema = new mongoose.Schema(
   {
+    classId: {type:mongoose.Schema.Types.ObjectId,ref:'Class'},
     student: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Student',
@@ -50,11 +51,10 @@ const attendanceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// ✅ ONE attendance per enrollment per day
-attendanceSchema.index(
-  { enrollment: 1, date: 1 },
-  { unique: true }
-);
+// Legacy attendance is preserved without guessing a class. New writes always include classId.
+// Existing databases MUST run scripts/migrate-classroom.js --apply after a backup.
+attendanceSchema.index({classId:1},{unique:true,partialFilterExpression:{classId:{$type:'objectId'}}});
+attendanceSchema.index({enrollment:1,date:1});
 
 export default mongoose.model('Attendance', attendanceSchema);
 

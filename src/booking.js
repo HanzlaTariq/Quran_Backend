@@ -7,6 +7,10 @@ import {avatarBytes,languages} from './profile-core.js';
 import {DAY_NAMES,MINUTE,DAY,normalizeAvailability,timeZone,calendarDate,dayBoundary,addDays,zonedParts} from './timetable-core.js';
 import {getBookingConfig,availableTeacher,slotDirectory,requestEnrollment,previewEnrollment,changeEnrollment,expirePending,createLesson,withBookingTransaction,actorLocks} from './booking-service.js';
 import {limiter} from './rate-limit.js';
+import {classroomActions,validateResource} from './classroom-core.js';
+import {classPopulate,participantLesson,startLesson,endLesson,emitClassChange,retryVideoClosure} from './classroom-service.js';
+import {dailyClient} from './daily.js';
+import * as library from './library.js';
 const router=Router();
 const escapeRegex=s=>s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
 export const publicTeacher=t=>({_id:t._id,user:{_id:t.user._id,name:t.user.name,country:t.user.country||'',city:t.user.city||'',timezone:t.user.timezone||'',languages:t.user.languages||[],gender:t.user.gender||'unspecified',photoVersion:t.user.photoVersion||0,profileImage:t.user.profileImage},bio:t.bio||'',experience:t.experience||0,expertise:t.expertise||[],courses:t.courses||[],qualifications:t.qualifications||[],availability:t.availability||[],rating:t.rating||{average:0,totalReviews:0}});
@@ -43,6 +47,9 @@ router.get('/profiles/:id/photo',async(req,res)=>{
 // Authentication is scoped to this router’s private endpoints. Do not intercept
 // public Quran, Hadith, course or homepage routes mounted by academy.js afterwards.
 router.use(['/auth/photo','/teacher-profile','/enrollments','/classes'],protect);
+// This gate applies to reads AND writes, including guessed URLs and old clients.
+router.use('/classes',roles('student','ulma'));
+router.use('/classes',(req,res,next)=>{res.set('Cache-Control','private, no-store, max-age=0');next();});
 router.post('/auth/photo',limiter('photo',{windowMs:60000,limit:10,standardHeaders:'draft-8',legacyHeaders:false}),async(req,res)=>{
   if(req.body.remove===true){await User.updateOne({_id:req.user._id},{$unset:{photoData:1},$set:{profileImage:'default.jpg'},$inc:{photoVersion:1}});return res.json({message:'Photo removed.',photoVersion:0,profileImage:'default.jpg'});}
   const bytes=avatarBytes(req.body.image);const u=await User.findByIdAndUpdate(req.user._id,{$set:{photoData:bytes,profileImage:'uploaded'},$inc:{photoVersion:1}},{new:true});res.json({message:'Profile photo saved.',photoVersion:u.photoVersion,profileImage:'uploaded'});
@@ -74,12 +81,18 @@ router.post('/enrollments',roles('student'),async(req,res)=>{const e=await reque
 router.patch('/enrollments/:id',async(req,res)=>{
   const status=choice(req.body.status,['approved','active','paused','completed','cancelled','rejected']);
   const r=await changeEnrollment(req.user,req.params.id,status),io=req.app.get('io');
-  if(['cancelled','completed','paused','rejected'].includes(status)){const ids=await Class.find({enrollment:r.enrollment._id,status:{$in:['cancelled','paused']},utcEnd:{$gt:new Date()}}).distinct('_id');for(const c of ids){io?.to(`class:${c}`).emit('class:status',{status:status==='paused'?'paused':'cancelled'});io?.in(`class:${c}`).socketsLeave(`class:${c}`);}}
+  if(['cancelled','completed','paused','rejected'].includes(status)){
+    const lessons=await Class.find({enrollment:r.enrollment._id,status:{$in:['cancelled','paused']},'liveRoom.readyAt':{$exists:true},'liveRoom.closedAt':{$exists:false}});
+    const outcomes=await Promise.all(lessons.map(async c=>{await emitClassChange(io,c).catch(()=>{});return retryVideoClosure(c);}));
+    if(outcomes.some(x=>!x.closed))r.warning='Enrollment updated and new joins blocked. One live video room still needs closure retry; its scheduled expiry remains enforced.';
+  }
   res.json(r);
 });
-function classActions(c,user,config){
-  const now=Date.now(),within=now>=+new Date(c.utcStart)-config.joinEarlyMinutes*MINUTE&&now<+new Date(c.utcEnd);
-  return {...c,canStart:['admin','ulma'].includes(user.role)&&c.status==='scheduled'&&within,canJoin:user.role!=='admin'&&c.status==='ongoing'&&within,joinOpensAt:new Date(+new Date(c.utcStart)-config.joinEarlyMinutes*MINUTE)};
+
+const startLimit=limiter('classroom-start',{windowMs:60000,limit:12,standardHeaders:'draft-8',legacyHeaders:false,message:{message:'Please wait before starting or rejoining again.'}});
+async function classView(user,record){
+  const c=await participantLesson(user,record);
+  return classroomActions(c.toObject(),user,await getBookingConfig());
 }
 router.get('/classes',async(req,res)=>{
   const q=await scope(req.user),bucket=choice(req.query.bucket||'all',['all','upcoming','live','history','cancelled']);let sort={utcStart:-1};
@@ -88,37 +101,71 @@ router.get('/classes',async(req,res)=>{
   if(bucket==='history')q.$or=[{utcEnd:{$lte:new Date()}},{status:'completed'}];
   if(bucket==='cancelled')q.status='cancelled';
   if(req.query.from||req.query.to){const zone=timeZone(req.user.timezone||'UTC');q.utcStart={};if(req.query.from)q.utcStart.$gte=dayBoundary(calendarDate(req.query.from),zone);if(req.query.to)q.utcStart.$lt=dayBoundary(addDays(calendarDate(req.query.to),1),zone);}
-  const result=await list(Class,q,req.query,enrollmentPopulate,sort),config=await getBookingConfig();result.items=result.items.map(c=>classActions(c,req.user,config));res.json({...result,booking:config,serverNow:new Date()});
+  const result=await list(Class,q,req.query,classPopulate,sort),config=await getBookingConfig();
+  result.items=result.items.map(c=>classroomActions(c,req.user,config));res.json({...result,booking:config,serverNow:new Date()});
 });
-router.get('/classes/:id',async(req,res)=>{const c=await findClass(req.user,req.params.id);await c.populate(enrollmentPopulate);res.json(classActions(c.toObject(),req.user,await getBookingConfig()));});
-router.post('/classes',roles('admin','ulma'),async(req,res)=>res.status(201).json(await createLesson(req.user,req.body)));
-router.post('/classes/:id/join',roles('student','ulma'),async(req,res)=>{
-  const c=await findClass(req.user,req.params.id),config=await getBookingConfig();
-  if(!classActions(c.toObject(),req.user,config).canJoin)fail(409,'The teacher must start this lesson during its scheduled time before you can join.');
-  const e=await Enrollment.findById(c.enrollment);if(!e||!['approved','active'].includes(e.status))fail(403,'The enrollment is not active.');
-  res.json(c.meetingLink?{kind:'external',url:safeUrl(c.meetingLink)}:{kind:'internal',url:`/class/${c._id}`});
+router.get('/classes/:id',async(req,res)=>res.json(await classView(req.user,req.params.id)));
+router.post('/classes',roles('ulma'),async(req,res)=>{
+  const lesson=await createLesson(req.user,req.body);
+  await emitClassChange(req.app.get('io'),lesson).catch(()=>{});
+  res.status(201).json(await classView(req.user,lesson._id));
 });
-router.patch('/classes/:id',roles('admin','ulma'),async(req,res)=>{
-  const initial=await findClass(req.user,req.params.id);
-  const c=await withBookingTransaction(actorLocks(initial.ulma,initial.student),async session=>{
-    const lesson=await Class.findById(initial._id).session(session),config=await getBookingConfig(session);
-    if(req.body.topic!==undefined)lesson.topic=text(req.body.topic,'Topic',2,160);
-    if(req.body.notes!==undefined)lesson.notes=text(req.body.notes,'Notes',0,2000);
-    if(req.body.meetingLink!==undefined)lesson.meetingLink=safeUrl(req.body.meetingLink);
-    if(req.body.status!==undefined){
-      const status=choice(req.body.status,['ongoing','completed','cancelled']),transitions={scheduled:['ongoing','cancelled'],ongoing:['completed','cancelled'],paused:['cancelled'],completed:[],cancelled:[]};
-      if(status!==lesson.status){
-        if(!transitions[lesson.status]?.includes(status))fail(409,'This lesson cannot change to that status.');
-        if(status==='ongoing'){
-          if(!classActions(lesson.toObject(),req.user,config).canStart)fail(409,`Start this lesson within ${config.joinEarlyMinutes} minutes before its scheduled start and before its end.`);
-          const e=await Enrollment.findById(lesson.enrollment).session(session);if(!e||!['approved','active'].includes(e.status))fail(409,'The enrollment is not active.');
-        }
-        lesson.status=status;
-        if(['cancelled','completed'].includes(status))await Reservation.deleteMany({classId:lesson._id},{session});
-      }
-    }
+router.post('/classes/:id/start',roles('ulma'),startLimit,async(req,res)=>{
+  const c=await startLesson(req,req.params.id);res.json(await classView(req.user,c._id));
+});
+router.post('/classes/:id/join',roles('student','ulma'),startLimit,async(req,res)=>{
+  const c=await participantLesson(req.user,req.params.id,{joining:true});
+  const access=await dailyClient().token(c,req.user);
+  // Minting involves a network round trip. Recheck after it, so an End/Pause does not
+  // release a new token from an old in-flight request.
+  await participantLesson(req.user,c._id,{joining:true});
+  res.json({kind:'embedded',provider:'daily',roomId:c.roomId,roomUrl:c.liveRoom.url,token:access.token,expiresAt:access.expiresAt});
+});
+router.post('/classes/:id/end',roles('ulma'),async(req,res)=>{
+  const {lesson,warning}=await endLesson(req,req.params.id,'completed');
+  res.json({...await classView(req.user,lesson._id),warning});
+});
+router.post('/classes/:id/close-video',roles('ulma'),startLimit,async(req,res)=>{
+  const c=await participantLesson(req.user,req.params.id);
+  if(!['completed','cancelled','paused'].includes(c.status)&&Date.now()<+c.utcEnd)fail(409,'End the lesson before closing its video room.');
+  const result=await retryVideoClosure(c);res.json({...await classView(req.user,c._id),warning:result.warning||null});
+});
+router.patch('/classes/:id/resource',roles('ulma'),async(req,res)=>{
+  const initial=await participantLesson(req.user,req.params.id),resource=validateResource(req.body.resource);
+  if(resource.kind==='quran'){
+    const surah=await library.surah(resource.surah);integer(resource.ayah,'Ayah',1,surah.ayahs.length);
+  }else if(resource.kind==='hadith'){
+    const result=await library.hadiths({book:resource.book,lang:resource.lang,q:resource.hadithNumber,limit:5});
+    if(!result.items.some(h=>String(h.hadithnumber)===resource.hadithNumber))fail(404,'This Hadith number is not in the installed edition.');
+  }
+  const expected=integer(req.body.version,'Resource version',0,2147483647);
+  const update={teachingResource:resource,resourceUpdatedAt:new Date()};
+  if(req.body.sharedNotes!==undefined)update.sharedNotes=text(req.body.sharedNotes,'Shared notes',0,12000);
+  const c=await withBookingTransaction(actorLocks(initial.ulma._id,initial.student._id),async session=>{
+    const lesson=await Class.findById(initial._id).session(session);
+    if(!['scheduled','ongoing'].includes(lesson.status)||Date.now()>=+lesson.utcEnd)fail(409,'Resources are read-only after a lesson ends or is paused.');
+    if((lesson.resourceVersion||0)!==expected)fail(409,'Another teacher tab updated this resource. Refresh before sharing again.');
+    Object.assign(lesson,update);lesson.resourceVersion=expected+1;await lesson.save({session});
+    await Audit.create([{actor:req.user._id,action:'class.resource',record:String(lesson._id)}],{session});return lesson;
+  });
+  await emitClassChange(req.app.get('io'),c).catch(()=>{});res.json(await classView(req.user,c._id));
+});
+router.patch('/classes/:id',roles('ulma'),async(req,res)=>{
+  if(req.body.meetingLink!==undefined)fail(400,'External meeting links are disabled. This academy uses embedded private rooms.');
+  // Old clients may still send a status PATCH: use the SAME lifecycle, never a shortcut.
+  if(req.body.status!==undefined){
+    const status=choice(req.body.status,['ongoing','completed','cancelled']);
+    if(status==='ongoing'){const c=await startLesson(req,req.params.id);return res.json(await classView(req.user,c._id));}
+    const {lesson,warning}=await endLesson(req,req.params.id,status);return res.json({...await classView(req.user,lesson._id),warning});
+  }
+  const initial=await participantLesson(req.user,req.params.id);
+  const c=await withBookingTransaction(actorLocks(initial.ulma._id,initial.student._id),async session=>{
+    const lesson=await Class.findById(initial._id).session(session);
+    if(!['scheduled','ongoing','paused'].includes(lesson.status)||Date.now()>=+lesson.utcEnd)fail(409,'This lesson is read-only after its scheduled end.');
+    if(req.body.topic!==undefined)lesson.topic=text(req.body.topic,'Class name',2,160);
+    if(req.body.notes!==undefined)lesson.notes=text(req.body.notes,'Description',0,2000);
     await lesson.save({session});await Audit.create([{actor:req.user._id,action:'class.update',record:String(lesson._id)}],{session});return lesson;
   });
-  const io=req.app.get('io');io?.to(`class:${c._id}`).emit('class:status',{status:c.status});if(['completed','cancelled','paused'].includes(c.status))io?.in(`class:${c._id}`).socketsLeave(`class:${c._id}`);res.json(c);
+  await emitClassChange(req.app.get('io'),c).catch(()=>{});res.json(await classView(req.user,c._id));
 });
 export default router;

@@ -30,4 +30,4 @@ for(const item of manifest.obsolete||[]) {
 }
 console.log(`\n${apply?'Cleanup complete':'DRY RUN — nothing deleted'}: ${matching} baseline matches, ${preserved} preserved, ${missing} already absent.`);
 if(!apply)console.log('Review this list, back up/commit your work, then run npm run update:clean to apply.');
-console.log('Run npm install to create a current package-lock.json before using npm ci.');
+console.log('This release includes a matching lockfile. Use npm ci; review START_HERE_CLASSROOM.md before changes.');

@@ -1,10 +1,14 @@
 import {Router} from 'express';
-import {User,Student,Ulma,Course,Class,Enrollment,Fee,Attendance,Assignment,Conversation,Notice,Audit,Config} from './models.js';
+import {User,Student,Ulma,Course,Class,Enrollment,Fee,Attendance,Assignment,Conversation,Notice,Audit,Config,Reservation} from './models.js';
 import {protect,roles,publicUser,revoke} from './auth.js';
 import {fail,id,text,integer,money,choice,date,same,safeUrl,pageParams,csvCell} from './core.js';
 import * as library from './library.js';
 import {bookingSettings} from './timetable-core.js';
 import {mailReady} from './email.js';
+import {dailyReady} from './daily.js';
+import {classroomActions} from './classroom-core.js';
+import {classPopulate,retryVideoClosure,emitClassChange} from './classroom-service.js';
+import {getBookingConfig} from './booking-service.js';
 import {profile,scope,enrollmentPopulate,findEnrollment,findClass,notify,log,list} from './access.js';
 export {profile,scope,enrollmentPopulate,findEnrollment,findClass,notify} from './access.js';
 const router=Router();
@@ -28,16 +32,17 @@ router.get('/courses',async(req,res)=>{
 router.use(protect);
 router.use((req,res,next)=>{res.set('Cache-Control','no-store');next();});
 router.get('/dashboard',async(req,res)=>{
-  const sc=await scope(req.user);
+  const sc=await scope(req.user),admin=req.user.role==='admin';
   const [enrollments,classes,fees,assignments,attendance,unread]=await Promise.all([
     Enrollment.find(sc).populate(enrollmentPopulate).sort({createdAt:-1}).limit(6).lean(),
-    Class.find({...sc,status:{$in:['scheduled','ongoing']},utcEnd:{$gte:new Date()}}).populate(enrollmentPopulate).sort({utcStart:1}).limit(4).lean(),
-    Fee.find(sc).select('amount status currency').lean(),Assignment.countDocuments({...sc,status:{$in:['pending','late']}}),Attendance.find(sc).select('status').lean(),Notice.countDocuments({user:req.user._id,read:false})
+    admin?[]:Class.find({...sc,status:{$in:['scheduled','ongoing']},utcEnd:{$gte:new Date()}}).populate(classPopulate).sort({utcStart:1}).limit(4).lean(),
+    Fee.find(sc).select('amount status currency').lean(),admin?0:Assignment.countDocuments({...sc,status:{$in:['pending','late']}}),admin?[]:Attendance.find(sc).select('status').lean(),Notice.countDocuments({user:req.user._id,read:false})
   ]);
   const counts={enrollments:await Enrollment.countDocuments({...sc,status:{$in:['active','approved']}}),classes:await Class.countDocuments({...sc,status:'completed'}),assignments,unread,pendingFees:fees.filter(x=>['pending','overdue','submitted'].includes(x.status)).reduce((a,x)=>a+x.amount,0),paidFees:fees.filter(x=>x.status==='paid').reduce((a,x)=>a+x.amount,0),attendance:attendance.length?Math.round(attendance.filter(x=>x.status!=='absent').length/attendance.length*100):null,readingDays:(req.user.readingDays||[]).length};
   if(req.user.role==='admin'){counts.users=await User.countDocuments();counts.teachers=await Ulma.countDocuments({isApproved:true});counts.pendingEnrollments=await Enrollment.countDocuments({status:'pending'});counts.courses=await Course.countDocuments({isActive:true});}
   counts.feeTotals={};for(const f of fees){const k=f.currency||'PKR';counts.feeTotals[k]??={paid:0,pending:0};if(f.status==='paid')counts.feeTotals[k].paid+=f.amount;if(['pending','overdue','submitted'].includes(f.status))counts.feeTotals[k].pending+=f.amount;}
-  res.json({counts,enrollments,classes});
+  const config=await getBookingConfig();
+  res.json({counts,enrollments,classes:classes.map(c=>classroomActions(c,req.user,config))});
 });
 router.post('/courses',roles('admin'),async(req,res)=>{
   const c=await Course.create({name:text(req.body.name,'Course name',2,100),description:text(req.body.description,'Description',10,4000),duration:integer(req.body.duration,'Duration in months',1,120),monthlyFee:money(req.body.monthlyFee),currency:choice(req.body.currency||'PKR',['PKR','USD','GBP','EUR','AED','SAR','CAD','AUD'],'Currency'),level:text(req.body.level||'All levels','Level',2,60),createdBy:req.user._id});
@@ -54,21 +59,24 @@ router.patch('/courses/:id',roles('admin'),async(req,res)=>{
   if(typeof req.body.isActive==='boolean')c.isActive=req.body.isActive;
   await c.save();await log(req,'course.update',c._id);res.json(c);
 });
-router.get('/attendance',async(req,res)=>res.json(await list(Attendance,await scope(req.user),req.query,enrollmentPopulate,{date:-1})));
-router.post('/attendance',roles('admin','ulma'),async(req,res)=>{
-  const c=await findClass(req.user,req.body.classId);if(!['ongoing','completed'].includes(c.status))fail(409,'Start the class before recording attendance.');
-  const e=c.enrollment?await Enrollment.findById(c.enrollment):await Enrollment.findOne({student:c.student,ulma:c.ulma,course:c.course});if(!e)fail(404,'Class enrollment not found.');
-  const day=new Date(c.utcStart);day.setUTCHours(0,0,0,0);
-  const a=await Attendance.findOneAndUpdate({enrollment:e._id,date:day},{$set:{student:e.student,ulma:e.ulma,status:choice(req.body.status,['present','absent','late'],'Attendance'),remarks:text(req.body.remarks||'','Remarks',0,1000),markedBy:req.user._id,markedAt:new Date()}},{upsert:true,new:true,runValidators:true});
-  c.attendance=a._id;await c.save();await log(req,'attendance.mark',a._id);res.json(a);
+router.get('/attendance',roles('student','ulma'),async(req,res)=>res.json(await list(Attendance,await scope(req.user),req.query,[...enrollmentPopulate,{path:'classId',select:'topic utcStart utcEnd'}],{date:-1})));
+router.post('/attendance',roles('ulma'),async(req,res)=>{
+  const c=await findClass(req.user,req.body.classId);
+  if(!['ongoing','completed'].includes(c.status))fail(409,'Start the class before recording attendance.');
+  const e=c.enrollment?await Enrollment.findById(c.enrollment):null;if(!e)fail(404,'Class enrollment not found.');
+  // Attendance is a teacher assertion, NOT an inferred iframe load or Daily prejoin.
+  const a=await Attendance.findOneAndUpdate({classId:c._id},{$set:{classId:c._id,enrollment:e._id,date:c.utcStart,student:e.student,ulma:e.ulma,status:choice(req.body.status,['present','absent','late'],'Attendance'),remarks:text(req.body.remarks||'','Remarks',0,1000),markedBy:req.user._id,markedAt:new Date()}},{upsert:true,new:true,runValidators:true});
+  await Class.updateOne({_id:c._id},{$set:{attendance:a._id}});await log(req,'attendance.mark',a._id);res.json(a);
 });
-router.get('/assignments',async(req,res)=>res.json(await list(Assignment,await scope(req.user),req.query,enrollmentPopulate,{dueDate:1})));
-router.post('/assignments',roles('admin','ulma'),async(req,res)=>{
+router.get('/assignments',roles('student','ulma'),async(req,res)=>res.json(await list(Assignment,await scope(req.user),req.query,enrollmentPopulate,{dueDate:1})));
+router.post('/assignments',roles('ulma'),async(req,res)=>{
   const e=await findEnrollment(req.user,req.body.enrollment);if(!['active','approved'].includes(e.status))fail(409,'Enrollment is not active.');
-  const a=await Assignment.create({student:e.student,ulma:e.ulma,title:text(req.body.title,'Title',2,160),description:text(req.body.description,'Instructions',5,4000),dueDate:date(req.body.dueDate),type:choice(req.body.type||'recitation',['recitation','memorization','understanding','test'])});
+  let lesson;
+  if(req.body.classId){lesson=await findClass(req.user,req.body.classId);if(!same(lesson.enrollment,e._id))fail(400,'The assignment class belongs to another enrollment.');}
+  const a=await Assignment.create({enrollment:e._id,class:lesson?._id,student:e.student,ulma:e.ulma,title:text(req.body.title,'Title',2,160),description:text(req.body.description,'Instructions',5,4000),dueDate:date(req.body.dueDate),type:choice(req.body.type||'recitation',['recitation','memorization','understanding','test'])});
   const s=await Student.findById(e.student);await notify(s.user,'New assignment',a.title,'/assignments',req.app.get('io'));res.status(201).json(a);
 });
-router.patch('/assignments/:id',async(req,res)=>{
+router.patch('/assignments/:id',roles('student','ulma'),async(req,res)=>{
   const a=await Assignment.findOne({_id:id(req.params.id),...await scope(req.user)});if(!a)fail(404,'Assignment not found.');
   if(req.user.role==='student'){
     if(['graded','completed'].includes(a.status))fail(409,'This assignment has already been graded.');
@@ -111,6 +119,15 @@ router.get('/reports',async(req,res)=>{
   const [classes,attendance,assignments]=await Promise.all([Class.find({...sc,utcStart:{$gte:start,$lt:end}}).populate(enrollmentPopulate).lean(),Attendance.find({...sc,date:{$gte:start,$lt:end}}).lean(),Assignment.find({...sc,'grade.gradedAt':{$gte:start,$lt:end}}).lean()]);
   const graded=assignments.filter(a=>a.grade?.maxScore>0);
   const result={month,classes,attendance,totalClasses:classes.length,completedClasses:classes.filter(c=>c.status==='completed').length,attendanceRate:attendance.length?Math.round(attendance.filter(a=>a.status!=='absent').length/attendance.length*100):null,averageScore:graded.length?Math.round(graded.reduce((sum,a)=>sum+a.grade.score/a.grade.maxScore*100,0)/graded.length):null};
+  if(req.user.role==='admin'){
+    const aggregate={month,totalClasses:result.totalClasses,completedClasses:result.completedClasses,attendanceRate:result.attendanceRate,averageScore:result.averageScore,classes:[],attendance:[],aggregateOnly:true};
+    if(req.query.format==='csv'){
+      const lines=[['Month','Total lessons','Completed lessons','Attendance percent','Average score'],[month,aggregate.totalClasses,aggregate.completedClasses,aggregate.attendanceRate??'',aggregate.averageScore??'']];
+      res.set('Content-Type','text/csv; charset=utf-8');res.set('Content-Disposition',`attachment; filename="academy-summary-${month}.csv"`);return res.send('\uFEFF'+lines.map(r=>r.map(csvCell).join(',')).join('\r\n'));
+    }
+    return res.json(aggregate);
+  }
+  result.classes=classes.map(({liveRoom,operationLock,meetingLink,recordingUrl,sharedNotes,teachingResource,...c})=>c);
   if(req.query.format==='csv'){
     const lines=[['Topic','Start (UTC)','Status','Student','Teacher'],...classes.map(c=>[c.topic,c.utcStart.toISOString(),c.status,c.student?.user?.name||'',c.ulma?.user?.name||''])];
     res.set('Content-Type','text/csv; charset=utf-8');res.set('Content-Disposition',`attachment; filename="noor-report-${month}.csv"`);return res.send('\uFEFF'+lines.map(r=>r.map(csvCell).join(',')).join('\r\n'));
@@ -144,9 +161,22 @@ router.patch('/users/:id',roles('admin'),async(req,res)=>{
   if(u.role==='admin')fail(403,'Administrative accounts must be managed through the server administrator.');
   if(typeof req.body.isActive==='boolean'){u.isActive=req.body.isActive;await u.save();if(!u.isActive)await revoke(u._id,req.app.get('io'));}
   if(u.role==='ulma'&&typeof req.body.approved==='boolean'){if(req.body.approved&&!u.isVerified)fail(409,'The teacher must verify their email with OTP before approval.');await Ulma.updateOne({user:u._id},{$set:{isApproved:req.body.approved}},{upsert:true});if(!req.body.approved)await revoke(u._id,req.app.get('io'));}
-  await log(req,'user.access',u._id);res.json({user:publicUser(u)});
+  let warning=null;
+  if(!u.isActive||req.body.approved===false){
+    const p=u.role==='ulma'?await Ulma.findOne({user:u._id}):await Student.findOne({user:u._id});
+    if(p){
+      const lessons=await Class.find({[u.role==='ulma'?'ulma':'student']:p._id,status:'ongoing'});
+      for(const c of lessons){
+        await Class.updateOne({_id:c._id},{$set:{status:'cancelled',endedAt:new Date(),'liveRoom.closePending':!!c.liveRoom?.readyAt}});
+        await Reservation.deleteMany({classId:c._id});
+        c.status='cancelled';await emitClassChange(req.app.get('io'),c).catch(()=>{});
+        const result=await retryVideoClosure(c);if(!result.closed)warning='Access revoked. A video room needs closure retry; its scheduled expiry still applies.';
+      }
+    }
+  }
+  await log(req,'user.access',u._id);res.json({user:publicUser(u),warning});
 });
-router.get('/config',roles('admin'),async(req,res)=>{const c=await Config.findOne({key:'main'}).lean()||{academyName:'Noor Academy',registrationOpen:true,announcement:'',paymentInstructions:'',contactEmail:''};res.json({...c,booking:bookingSettings(c),emailConfigured:mailReady()});});
+router.get('/config',roles('admin'),async(req,res)=>{const c=await Config.findOne({key:'main'}).lean()||{academyName:'Noor Academy',registrationOpen:true,announcement:'',paymentInstructions:'',contactEmail:''};res.json({...c,booking:bookingSettings(c),emailConfigured:mailReady(),videoConfigured:dailyReady(),videoProvider:'daily'});});
 router.patch('/config',roles('admin'),async(req,res)=>{
   const value={academyName:text(req.body.academyName,'Academy name',2,80),announcement:text(req.body.announcement||'','Announcement',0,2000),paymentInstructions:text(req.body.paymentInstructions||'','Payment instructions',0,3000),contactEmail:text(req.body.contactEmail||'','Contact email',0,254),registrationOpen:req.body.registrationOpen!==false};
   if(req.body.booking!==undefined)value.booking=bookingSettings(req.body.booking);

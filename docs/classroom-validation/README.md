@@ -1,0 +1,1 @@
+UI-only verification artifacts. API, history, sockets and video are mocked; no real call is shown. See ../CLASSROOM_TEST_REPORT.md. Religious text fixtures are not a production dataset. No downloaded font/runtime files are included.

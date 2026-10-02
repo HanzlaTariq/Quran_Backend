@@ -1,6 +1,20 @@
 import mongoose from 'mongoose';
 
 const classSchema = new mongoose.Schema({
+  // One opaque room per lesson. The Daily room is provisioned only when its teacher starts it.
+  roomId: {type:String, default:function(){return `quran-class-${this._id}`;}},
+  startedAt: Date,
+  startedBy: {type:mongoose.Schema.Types.ObjectId,ref:'User'},
+  endedAt: Date,
+  operationLock: {key:String,until:Date},
+  liveRoom: {
+    name:String, url:String, expiresAt:Date, readyAt:Date,
+    closePending:{type:Boolean,default:false}, closedAt:Date,
+  },
+  teachingResource: {type:mongoose.Schema.Types.Mixed,default:()=>({kind:'quran',surah:1,ayah:1,translation:'en'})},
+  resourceVersion:{type:Number,default:0},
+  resourceUpdatedAt:Date,
+  sharedNotes:{type:String,default:'',maxlength:12000},
   occurrenceKey:{type:String},
   teacherTimeZone:String,
   slotMinutes:Number,
@@ -64,6 +78,7 @@ const classSchema = new mongoose.Schema({
   }
 });
 
+classSchema.index({roomId:1},{unique:true,partialFilterExpression:{roomId:{$type:'string'}}});
 classSchema.index({occurrenceKey:1},{unique:true,partialFilterExpression:{occurrenceKey:{$type:'string'}}});
 classSchema.index({ulma:1,utcStart:1,utcEnd:1});
 classSchema.index({student:1,utcStart:1,utcEnd:1});

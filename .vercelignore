@@ -8,3 +8,7 @@ coverage/
 PATCH_MANIFEST.json
 UPDATE_GUIDE.md
 scripts/clean-legacy.mjs
+
+# Release documentation and offline validation assets are not runtime files.
+docs/classroom-validation/
+START_HERE_CLASSROOM.md

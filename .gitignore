@@ -33,7 +33,7 @@ dist-ssr
 
 # Noor v2: never commit private credentials or generated output.
 .env*
-!.env.example
+.env.example
 .vercel/
 coverage/
 data/*.json

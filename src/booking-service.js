@@ -151,7 +151,7 @@ export async function changeEnrollment(user,record,status){
       await Conversation.findOneAndUpdate({studentId:student.user,ulmaId:teacher.user._id,courseId:e.course},{$setOnInsert:{studentId:student.user,ulmaId:teacher.user._id,courseId:e.course}},{upsert:true,new:true,session});
       e.generatedAt=new Date();e.startDate=plan.items[0].utcStart;e.endDate=plan.items.at(-1).utcEnd;e.classesCount=classesCreated;e.invoiceCount=invoicesCreated;e.holdExpiresAt=undefined;
     }
-    if(status==='paused')await Class.updateMany({enrollment:e._id,status:'scheduled',utcEnd:{$gt:new Date()}},{$set:{status:'paused'}},{session});
+    if(status==='paused')await Class.updateMany({enrollment:e._id,status:{$in:['scheduled','ongoing']},utcEnd:{$gt:new Date()}},{$set:{status:'paused'}},{session});
     if(e.status==='paused'&&status==='active')await Class.updateMany({enrollment:e._id,status:'paused',utcStart:{$gt:new Date()}},{$set:{status:'scheduled'}},{session});
     if(['cancelled','rejected','completed'].includes(status)){
       e.activeRequestKey=undefined;e.holdExpiresAt=undefined;
@@ -199,8 +199,10 @@ export async function slotDirectory(teacher,{course,student,from,zone,days=7,exc
 }
 
 export async function createLesson(user,body){
+  if(user.role!=='ulma')fail(403,'Only the assigned teacher can schedule a lesson.');
+  if(body.meetingLink)fail(400,'External meeting links are not supported. Live classes open inside the academy.');
   const e=await Enrollment.findById(id(body.enrollment));if(!e)fail(404,'Enrollment not found.');
-  const p=user.role==='ulma'?await Ulma.findOne({user:user._id}):null;if(user.role!=='admin'&&!same(p?._id,e.ulma))fail(403,'This is not your enrollment.');
+  const p=await Ulma.findOne({user:user._id});if(!same(p?._id,e.ulma))fail(403,'This is not your enrollment.');
   return withBookingTransaction(actorLocks(e.ulma,e.student),async session=>{
     const current=await Enrollment.findById(e._id).session(session);if(!['approved','active'].includes(current.status))fail(409,'Choose an active or approved enrollment.');
     const teacher=await availableTeacher(e.ulma,{session}),student=await Student.findById(e.student).session(session),config=await getBookingConfig(session);
@@ -210,7 +212,7 @@ export async function createLesson(user,body){
     if(+end-+start!==config.slotMinutes*MINUTE)fail(400,`New lessons must be ${config.slotMinutes} minutes, as set by the administrator.`);
     if(+start<Date.now()-MINUTE)fail(400,'Choose a future lesson time.');
     const busy=await busyIntervals(teacher,student,start,end,{session,allowLegacyEnrollment:e._id}),conflict=firstConflict([{utcStart:start,utcEnd:end}],busy);if(conflict)conflictError(conflict,zone);
-    const [lesson]=await Class.create([{enrollment:e._id,student:e.student,ulma:e.ulma,course:e.course,date:start,utcStart:start,utcEnd:end,topic:text(body.topic,'Topic',2,160),meetingLink:safeUrl(body.meetingLink),teacherTimeZone:teacher.user.timezone,slotMinutes:config.slotMinutes,status:'scheduled'}],{session});
+    const [lesson]=await Class.create([{enrollment:e._id,student:e.student,ulma:e.ulma,course:e.course,date:start,utcStart:start,utcEnd:end,topic:text(body.topic,'Topic',2,160),notes:text(body.notes||'','Lesson description',0,2000),teacherTimeZone:teacher.user.timezone,slotMinutes:config.slotMinutes,status:'scheduled'}],{session});
     await Reservation.create([{classId:lesson._id,enrollment:e._id,student:e.student,ulma:e.ulma,utcStart:start,utcEnd:end,status:'confirmed',occurrenceKey:`manual:${lesson._id}`}],{session});
     await Notice.insertMany([student.user,teacher.user._id].map(target=>({user:target,title:'A lesson was scheduled',body:lesson.topic,href:'/classes'})),{session});
     await Audit.create([{actor:user._id,action:'class.create',record:String(lesson._id)}],{session});return lesson;

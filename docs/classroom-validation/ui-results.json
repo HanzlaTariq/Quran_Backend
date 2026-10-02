@@ -1,0 +1,20 @@
+{
+  "passed": 14,
+  "checks": [
+    "Scheduled student classroom has no Join or Start button.",
+    "Teacher Start updates student Join via polling without a refresh.",
+    "Both roles render an embedded provider iframe in the class route (history/media are mocked).",
+    "Teacher focus reaches student; changing an ayah preserves each live iframe DOM node.",
+    "Independent student browsing survives teacher updates; Follow teacher restores shared focus.",
+    "Shared notes synchronize; student sees read-only notes.",
+    "Teacher attendance form sends the exact class ID; no automatic presence inference.",
+    "Teacher assignment form stays in class and attaches its enrollment/class IDs.",
+    "End Class removes both frames and removes student joining.",
+    "Admin has operational dashboard only; teaching sidebar links and direct class route are blocked.",
+    "Scheduling collects name/date/time and has no external meeting URL field.",
+    "390px mobile classroom renders without horizontal overflow.",
+    "Join links with join=1 automatically open the embedded prejoin frame after server eligibility check.",
+    "No uncaught browser JavaScript errors during these flows."
+  ],
+  "browser_errors": []
+}

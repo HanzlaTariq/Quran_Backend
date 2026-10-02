@@ -1,0 +1,843 @@
+
+> noor-academy-api@2.2.0 test
+> node --test tests/core.test.js tests/library.test.js tests/rate-limit-store.test.js tests/timetable.test.js tests/otp-core.test.js tests/profile-core.test.js tests/classroom.test.js tests/daily.test.js
+
+TAP version 13
+# Subtest: room IDs are stable and class-specific
+ok 1 - room IDs are stable and class-specific
+  ---
+  duration_ms: 1.447041
+  type: 'test'
+  ...
+# Subtest: teacher can start in the configured window; student and admin cannot
+ok 2 - teacher can start in the configured window; student and admin cannot
+  ---
+  duration_ms: 0.248548
+  type: 'test'
+  ...
+# Subtest: scheduled class NEVER exposes join even when time is correct
+ok 3 - scheduled class NEVER exposes join even when time is correct
+  ---
+  duration_ms: 0.172665
+  type: 'test'
+  ...
+# Subtest: ongoing alone is insufficient: provisioning and teacher start are required
+ok 4 - ongoing alone is insufficient: provisioning and teacher start are required
+  ---
+  duration_ms: 0.214998
+  type: 'test'
+  ...
+# Subtest: only participant roles can join a prepared live lesson
+ok 5 - only participant roles can join a prepared live lesson
+  ---
+  duration_ms: 1.186035
+  type: 'test'
+  ...
+# Subtest: time boundaries are exact, including scheduled end
+ok 6 - time boundaries are exact, including scheduled end
+  ---
+  duration_ms: 0.156842
+  type: 'test'
+  ...
+# Subtest: pending enrollments cannot start or join
+ok 7 - pending enrollments cannot start or join
+  ---
+  duration_ms: 0.198964
+  type: 'test'
+  ...
+# Subtest: paused enrollments cannot start or join
+ok 8 - paused enrollments cannot start or join
+  ---
+  duration_ms: 0.072868
+  type: 'test'
+  ...
+# Subtest: cancelled enrollments cannot start or join
+ok 9 - cancelled enrollments cannot start or join
+  ---
+  duration_ms: 0.267295
+  type: 'test'
+  ...
+# Subtest: rejected enrollments cannot start or join
+ok 10 - rejected enrollments cannot start or join
+  ---
+  duration_ms: 0.285753
+  type: 'test'
+  ...
+# Subtest: expired enrollments cannot start or join
+ok 11 - expired enrollments cannot start or join
+  ---
+  duration_ms: 0.11451
+  type: 'test'
+  ...
+# Subtest: completed enrollments cannot start or join
+ok 12 - completed enrollments cannot start or join
+  ---
+  duration_ms: 0.084676
+  type: 'test'
+  ...
+# Subtest: completed lessons cannot be joined
+ok 13 - completed lessons cannot be joined
+  ---
+  duration_ms: 0.082782
+  type: 'test'
+  ...
+# Subtest: cancelled lessons cannot be joined
+ok 14 - cancelled lessons cannot be joined
+  ---
+  duration_ms: 0.042022
+  type: 'test'
+  ...
+# Subtest: paused lessons cannot be joined
+ok 15 - paused lessons cannot be joined
+  ---
+  duration_ms: 0.034802
+  type: 'test'
+  ...
+# Subtest: missing enrollment fails closed
+ok 16 - missing enrollment fails closed
+  ---
+  duration_ms: 0.062081
+  type: 'test'
+  ...
+# Subtest: list/detail serialization strips provider URLs, old links and locks
+ok 17 - list/detail serialization strips provider URLs, old links and locks
+  ---
+  duration_ms: 0.345992
+  type: 'test'
+  ...
+# Subtest: teacher role guard rejects student, admin and missing identities
+ok 18 - teacher role guard rejects student, admin and missing identities
+  ---
+  duration_ms: 0.215699
+  type: 'test'
+  ...
+# Subtest: participant role guard rejects administrators
+ok 19 - participant role guard rejects administrators
+  ---
+  duration_ms: 0.145786
+  type: 'test'
+  ...
+# Subtest: Quran references use typed allowlisted fields, not arbitrary HTML or URLs
+ok 20 - Quran references use typed allowlisted fields, not arbitrary HTML or URLs
+  ---
+  duration_ms: 0.734597
+  type: 'test'
+  ...
+# Subtest: Hadith references validate collection, language and decimal numbering
+ok 21 - Hadith references validate collection, language and decimal numbering
+  ---
+  duration_ms: 0.297891
+  type: 'test'
+  ...
+# Subtest: notes are a valid resource; unknown resources and arrays are rejected
+ok 22 - notes are a valid resource; unknown resources and arrays are rejected
+  ---
+  duration_ms: 0.126457
+  type: 'test'
+  ...
+# Subtest: Daily rooms are private, capacity limited and expire at the class end
+ok 23 - Daily rooms are private, capacity limited and expire at the class end
+  ---
+  duration_ms: 0.871239
+  type: 'test'
+  ...
+# Subtest: Daily tokens are room- and user-scoped and do not enable recording
+ok 24 - Daily tokens are room- and user-scoped and do not enable recording
+  ---
+  duration_ms: 1.898458
+  type: 'test'
+  ...
+# Subtest: teacher token has host control; admin cannot mint a token
+ok 25 - teacher token has host control; admin cannot mint a token
+  ---
+  duration_ms: 0.927713
+  type: 'test'
+  ...
+# Subtest: provider URL validation rejects origin tricks, public rooms and wrong paths
+ok 26 - provider URL validation rejects origin tricks, public rooms and wrong paths
+  ---
+  duration_ms: 0.531005
+  type: 'test'
+  ...
+# Subtest: text trims normal fields and enforces boundaries
+ok 27 - text trims normal fields and enforces boundaries
+  ---
+  duration_ms: 1.48696
+  type: 'test'
+  ...
+# Subtest: text rejects Mongo operator objects and control characters
+ok 28 - text rejects Mongo operator objects and control characters
+  ---
+  duration_ms: 0.207247
+  type: 'test'
+  ...
+# Subtest: text permits meaningful multilingual paragraphs
+ok 29 - text permits meaningful multilingual paragraphs
+  ---
+  duration_ms: 0.106728
+  type: 'test'
+  ...
+# Subtest: integer accepts numeric form values and rejects fractions/ranges
+ok 30 - integer accepts numeric form values and rejects fractions/ranges
+  ---
+  duration_ms: 0.255628
+  type: 'test'
+  ...
+# Subtest: integer rejects coercible nonnumeric input types
+ok 31 - integer rejects coercible nonnumeric input types
+  ---
+  duration_ms: 0.233746
+  type: 'test'
+  ...
+# Subtest: money preserves nonnegative two-decimal values and rejects invalid values
+ok 32 - money preserves nonnegative two-decimal values and rejects invalid values
+  ---
+  duration_ms: 1.174878
+  type: 'test'
+  ...
+# Subtest: email supports plus addressing and long domains
+ok 33 - email supports plus addressing and long domains
+  ---
+  duration_ms: 0.272654
+  type: 'test'
+  ...
+# Subtest: password preserves whitespace rather than silently changing a secret
+ok 34 - password preserves whitespace rather than silently changing a secret
+  ---
+  duration_ms: 0.125015
+  type: 'test'
+  ...
+# Subtest: password enforces bcrypt UTF-8 byte ceiling
+ok 35 - password enforces bcrypt UTF-8 byte ceiling
+  ---
+  duration_ms: 0.302888
+  type: 'test'
+  ...
+# Subtest: ObjectId validation rejects arbitrary Mongo operators and malformed IDs
+ok 36 - ObjectId validation rejects arbitrary Mongo operators and malformed IDs
+  ---
+  duration_ms: 5.187589
+  type: 'test'
+  ...
+# Subtest: choice is an explicit allowlist
+ok 37 - choice is an explicit allowlist
+  ---
+  duration_ms: 0.22345
+  type: 'test'
+  ...
+# Subtest: date validates invalid values
+ok 38 - date validates invalid values
+  ---
+  duration_ms: 0.390458
+  type: 'test'
+  ...
+# Subtest: external links require HTTPS and forbid embedded credentials
+ok 39 - external links require HTTPS and forbid embedded credentials
+  ---
+  duration_ms: 0.204192
+  type: 'test'
+  ...
+# Subtest: Arabic search normalization handles diacritics and alef variants
+ok 40 - Arabic search normalization handles diacritics and alef variants
+  ---
+  duration_ms: 0.192114
+  type: 'test'
+  ...
+# Subtest: search normalization handles Latin accents and Urdu character variants
+ok 41 - search normalization handles Latin accents and Urdu character variants
+  ---
+  duration_ms: 0.109642
+  type: 'test'
+  ...
+# Subtest: pagination reports empty state without fabricated results
+ok 42 - pagination reports empty state without fabricated results
+  ---
+  duration_ms: 0.59489
+  type: 'test'
+  ...
+# Subtest: pagination slices and validates upper limits
+ok 43 - pagination slices and validates upper limits
+  ---
+  duration_ms: 0.13497
+  type: 'test'
+  ...
+# Subtest: secure session token shape and uniqueness
+ok 44 - secure session token shape and uniqueness
+  ---
+  duration_ms: 0.895785
+  type: 'test'
+  ...
+# Subtest: session token hashing is deterministic and does not store the raw token
+ok 45 - session token hashing is deterministic and does not store the raw token
+  ---
+  duration_ms: 0.490616
+  type: 'test'
+  ...
+# Subtest: CSRF HMAC depends on the configured secret
+ok 46 - CSRF HMAC depends on the configured secret
+  ---
+  duration_ms: 0.329898
+  type: 'test'
+  ...
+# Subtest: constant-time comparator rejects wrong values and types
+ok 47 - constant-time comparator rejects wrong values and types
+  ---
+  duration_ms: 0.170252
+  type: 'test'
+  ...
+# Subtest: AES-GCM round trip supports Arabic and Unicode messages
+ok 48 - AES-GCM round trip supports Arabic and Unicode messages
+  ---
+  duration_ms: 0.537776
+  type: 'test'
+  ...
+# Subtest: AES-GCM uses a fresh IV for identical plaintext
+ok 49 - AES-GCM uses a fresh IV for identical plaintext
+  ---
+  duration_ms: 0.228648
+  type: 'test'
+  ...
+# Subtest: AES-GCM rejects the wrong key
+ok 50 - AES-GCM rejects the wrong key
+  ---
+  duration_ms: 0.174559
+  type: 'test'
+  ...
+# Subtest: AES-GCM rejects ciphertext tampering
+ok 51 - AES-GCM rejects ciphertext tampering
+  ---
+  duration_ms: 0.173126
+  type: 'test'
+  ...
+# Subtest: AES-GCM rejects tampered authentication tag
+ok 52 - AES-GCM rejects tampered authentication tag
+  ---
+  duration_ms: 0.222499
+  type: 'test'
+  ...
+# Subtest: invalid encryption key fails rather than storing plaintext
+ok 53 - invalid encryption key fails rather than storing plaintext
+  ---
+  duration_ms: 0.095121
+  type: 'test'
+  ...
+# Subtest: legacy plaintext is readable for controlled migration only
+ok 54 - legacy plaintext is readable for controlled migration only
+  ---
+  duration_ms: 0.052318
+  type: 'test'
+  ...
+# Subtest: CSV quoting escapes quotes, commas and multiline text
+ok 55 - CSV quoting escapes quotes, commas and multiline text
+  ---
+  duration_ms: 0.161179
+  type: 'test'
+  ...
+# Subtest: CSV export prevents spreadsheet-formula injection
+ok 56 - CSV export prevents spreadsheet-formula injection
+  ---
+  duration_ms: 0.129913
+  type: 'test'
+  ...
+# Subtest: ID comparison supports populated and unpopulated document references
+ok 57 - ID comparison supports populated and unpopulated document references
+  ---
+  duration_ms: 0.089122
+  type: 'test'
+  ...
+# Subtest: missing Daily key fails before any network call
+ok 58 - missing Daily key fails before any network call
+  ---
+  duration_ms: 8.205008
+  type: 'test'
+  ...
+# Subtest: room creation requests private room and re-applies policy
+ok 59 - room creation requests private room and re-applies policy
+  ---
+  duration_ms: 1.222799
+  type: 'test'
+  ...
+# Subtest: existing room is reused without POST /rooms duplication
+ok 60 - existing room is reused without POST /rooms duplication
+  ---
+  duration_ms: 0.396447
+  type: 'test'
+  ...
+# Subtest: ambiguous creation timeout recovers by fetching the deterministic room
+ok 61 - ambiguous creation timeout recovers by fetching the deterministic room
+  ---
+  duration_ms: 1.265092
+  type: 'test'
+  ...
+# Subtest: public room mismatch fails closed rather than minting access
+ok 62 - public room mismatch fails closed rather than minting access
+  ---
+  duration_ms: 0.31763
+  type: 'test'
+  ...
+# Subtest: provider credentials/error bodies are not exposed
+ok 63 - provider credentials/error bodies are not exposed
+  ---
+  duration_ms: 0.197452
+  type: 'test'
+  ...
+# Subtest: provider rate limit is surfaced as retriable unavailability
+ok 64 - provider rate limit is surfaced as retriable unavailability
+  ---
+  duration_ms: 0.198413
+  type: 'test'
+  ...
+# Subtest: network failures are sanitized
+ok 65 - network failures are sanitized
+  ---
+  duration_ms: 0.177893
+  type: 'test'
+  ...
+# Subtest: meeting token body uses server identity, not browser role claims
+ok 66 - meeting token body uses server identity, not browser role claims
+  ---
+  duration_ms: 0.525818
+  type: 'test'
+  ...
+# Subtest: malformed provider token response fails closed
+ok 67 - malformed provider token response fails closed
+  ---
+  duration_ms: 0.389226
+  type: 'test'
+  ...
+# Subtest: close expires, ejects both unique user IDs and deletes the room
+ok 68 - close expires, ejects both unique user IDs and deletes the room
+  ---
+  duration_ms: 0.847975
+  type: 'test'
+  ...
+# Subtest: expiry can succeed when nobody is connected to eject
+ok 69 - expiry can succeed when nobody is connected to eject
+  ---
+  duration_ms: 0.18226
+  type: 'test'
+  ...
+# Subtest: missing room closure is idempotent
+ok 70 - missing room closure is idempotent
+  ---
+  duration_ms: 0.166036
+  type: 'test'
+  ...
+# Subtest: closure failure does not falsely report success or rely on DELETE alone
+ok 71 - closure failure does not falsely report success or rely on DELETE alone
+  ---
+  duration_ms: 0.166056
+  type: 'test'
+  ...
+# Subtest: failed deletion remains retriable even when expiry succeeded
+ok 72 - failed deletion remains retriable even when expiry succeeded
+  ---
+  duration_ms: 0.137253
+  type: 'test'
+  ...
+# Subtest: library contracts using isolated temporary non-religious fixture files
+    # Subtest: missing data returns actionable service-unavailable error
+    ok 1 - missing data returns actionable service-unavailable error
+      ---
+      duration_ms: 3.938897
+      type: 'test'
+      ...
+    # Subtest: surah index excludes verse content and supplies actual lengths
+    ok 2 - surah index excludes verse content and supplies actual lengths
+      ---
+      duration_ms: 1.013239
+      type: 'test'
+      ...
+    # Subtest: surah number boundaries are enforced
+    ok 3 - surah number boundaries are enforced
+      ---
+      duration_ms: 0.740325
+      type: 'test'
+      ...
+    # Subtest: Quran reference lookup returns the selected reference
+    ok 4 - Quran reference lookup returns the selected reference
+      ---
+      duration_ms: 1.633948
+      type: 'test'
+      ...
+    # Subtest: Quran translation search matches downloaded fields
+    ok 5 - Quran translation search matches downloaded fields
+      ---
+      duration_ms: 1.701227
+      type: 'test'
+      ...
+    # Subtest: Quran Arabic search ignores diacritics
+    ok 6 - Quran Arabic search ignores diacritics
+      ---
+      duration_ms: 2.03486
+      type: 'test'
+      ...
+    # Subtest: Hadith book availability reflects actual files
+    ok 7 - Hadith book availability reflects actual files
+      ---
+      duration_ms: 1.042682
+      type: 'test'
+      ...
+    # Subtest: Hadith number lookup is exact rather than a substring match
+    ok 8 - Hadith number lookup is exact rather than a substring match
+      ---
+      duration_ms: 0.962935
+      type: 'test'
+      ...
+    # Subtest: Hadith text search excludes empty entries
+    ok 9 - Hadith text search excludes empty entries
+      ---
+      duration_ms: 0.695008
+      type: 'test'
+      ...
+    # Subtest: Hadith chapters are filtered against edition reference numbers
+    ok 10 - Hadith chapters are filtered against edition reference numbers
+      ---
+      duration_ms: 0.752583
+      type: 'test'
+      ...
+    # Subtest: unsupported collection and language cannot become filesystem paths
+    ok 11 - unsupported collection and language cannot become filesystem paths
+      ---
+      duration_ms: 0.959759
+      type: 'test'
+      ...
+    # Subtest: daily selection is deterministic for the same UTC day
+    ok 12 - daily selection is deterministic for the same UTC day
+      ---
+      duration_ms: 2.341984
+      type: 'test'
+      ...
+    # Subtest: manifest/source status is available without fabricated content
+    ok 13 - manifest/source status is available without fabricated content
+      ---
+      duration_ms: 1.075541
+      type: 'test'
+      ...
+    1..13
+ok 73 - library contracts using isolated temporary non-religious fixture files
+  ---
+  duration_ms: 37.277097
+  type: 'test'
+  ...
+# Subtest: OTP generator yields exactly six decimal digits, including leading zeros
+ok 74 - OTP generator yields exactly six decimal digits, including leading zeros
+  ---
+  duration_ms: 1.978266
+  type: 'test'
+  ...
+# Subtest: OTP HMAC is deterministic but is not plaintext
+ok 75 - OTP HMAC is deterministic but is not plaintext
+  ---
+  duration_ms: 0.552417
+  type: 'test'
+  ...
+# Subtest: OTP digest is bound to purpose, ticket and server secret
+ok 76 - OTP digest is bound to purpose, ticket and server secret
+  ---
+  duration_ms: 0.258773
+  type: 'test'
+  ...
+# Subtest: OTP comparison rejects malformed, wrong and type-coerced inputs
+ok 77 - OTP comparison rejects malformed, wrong and type-coerced inputs
+  ---
+  duration_ms: 0.450697
+  type: 'test'
+  ...
+# Subtest: opaque verification tickets require the full unguessable hex form
+ok 78 - opaque verification tickets require the full unguessable hex form
+  ---
+  duration_ms: 4.086855
+  type: 'test'
+  ...
+# Subtest: OTP limits include TTL, resend cooldown, maximum guesses and absolute expiry
+ok 79 - OTP limits include TTL, resend cooldown, maximum guesses and absolute expiry
+  ---
+  duration_ms: 0.212585
+  type: 'test'
+  ...
+# Subtest: profile retains country, location, IANA zone, gender and language fields
+ok 80 - profile retains country, location, IANA zone, gender and language fields
+  ---
+  duration_ms: 20.430894
+  type: 'test'
+  ...
+# Subtest: registration requires profile country, languages and time zone
+ok 81 - registration requires profile country, languages and time zone
+  ---
+  duration_ms: 0.704472
+  type: 'test'
+  ...
+# Subtest: language normalization trims and deduplicates; blank optional expertise is valid
+ok 82 - language normalization trims and deduplicates; blank optional expertise is valid
+  ---
+  duration_ms: 0.467802
+  type: 'test'
+  ...
+# Subtest: profile update cannot change role, email, verified flag or approval
+ok 83 - profile update cannot change role, email, verified flag or approval
+  ---
+  duration_ms: 0.286404
+  type: 'test'
+  ...
+# Subtest: profile age and gender are explicitly validated
+ok 84 - profile age and gender are explicitly validated
+  ---
+  duration_ms: 0.308866
+  type: 'test'
+  ...
+# Subtest: small raster JPEG avatar is accepted
+ok 85 - small raster JPEG avatar is accepted
+  ---
+  duration_ms: 0.406371
+  type: 'test'
+  ...
+# Subtest: SVG, HTML, external URLs and invalid JPEG are rejected
+ok 86 - SVG, HTML, external URLs and invalid JPEG are rejected
+  ---
+  duration_ms: 1.822025
+  type: 'test'
+  ...
+# Subtest: oversized avatars are rejected
+ok 87 - oversized avatars are rejected
+  ---
+  duration_ms: 1.12213
+  type: 'test'
+  ...
+# Subtest: rate-limit storage hashes keys and isolates namespaces
+ok 88 - rate-limit storage hashes keys and isolates namespaces
+  ---
+  duration_ms: 1.051555
+  type: 'test'
+  ...
+# Subtest: increment issues a single atomic upsert with a future expiry
+ok 89 - increment issues a single atomic upsert with a future expiry
+  ---
+  duration_ms: 0.702389
+  type: 'test'
+  ...
+# Subtest: increment returns an existing counter and reset time
+ok 90 - increment returns an existing counter and reset time
+  ---
+  duration_ms: 0.245813
+  type: 'test'
+  ...
+# Subtest: first-write duplicate race is retried once
+ok 91 - first-write duplicate race is retried once
+  ---
+  duration_ms: 0.321025
+  type: 'test'
+  ...
+# Subtest: database failure propagates instead of failing open
+ok 92 - database failure propagates instead of failing open
+  ---
+  duration_ms: 0.386421
+  type: 'test'
+  ...
+# Subtest: malformed database counter is rejected
+ok 93 - malformed database counter is rejected
+  ---
+  duration_ms: 0.204283
+  type: 'test'
+  ...
+# Subtest: decrement never selects a zero or negative counter
+ok 94 - decrement never selects a zero or negative counter
+  ---
+  duration_ms: 0.274225
+  type: 'test'
+  ...
+# Subtest: reset deletes only the specified hashed bucket
+ok 95 - reset deletes only the specified hashed bucket
+  ---
+  duration_ms: 0.16864
+  type: 'test'
+  ...
+# Subtest: IANA regional zones are validated; country names and offsets are rejected
+ok 96 - IANA regional zones are validated; country names and offsets are rejected
+  ---
+  duration_ms: 13.836249
+  type: 'test'
+  ...
+# Subtest: calendar dates reject rollovers and malformed input
+ok 97 - calendar dates reject rollovers and malformed input
+  ---
+  duration_ms: 0.392861
+  type: 'test'
+  ...
+# Subtest: calendar addDays handles month, year and leap-day transitions
+ok 98 - calendar addDays handles month, year and leap-day transitions
+  ---
+  duration_ms: 0.210832
+  type: 'test'
+  ...
+# Subtest: billing month addition is anchored and clamps short months
+ok 99 - billing month addition is anchored and clamps short months
+  ---
+  duration_ms: 0.160467
+  type: 'test'
+  ...
+# Subtest: Monday to Sunday weekday mapping includes Sunday
+ok 100 - Monday to Sunday weekday mapping includes Sunday
+  ---
+  duration_ms: 0.168319
+  type: 'test'
+  ...
+# Subtest: clock input distinguishes start midnight from end midnight
+ok 101 - clock input distinguishes start midnight from end midnight
+  ---
+  duration_ms: 0.302768
+  type: 'test'
+  ...
+# Subtest: Karachi 18:00 is 13:00 UTC; New York student sees 09:00 before DST ends
+ok 102 - Karachi 18:00 is 13:00 UTC; New York student sees 09:00 before DST ends
+  ---
+  duration_ms: 1.091604
+  type: 'test'
+  ...
+# Subtest: Pakistan weekly time remains fixed while New York student clock changes
+ok 103 - Pakistan weekly time remains fixed while New York student clock changes
+  ---
+  duration_ms: 0.404278
+  type: 'test'
+  ...
+# Subtest: USA-based teacher recurrence independently converts each occurrence across DST
+ok 104 - USA-based teacher recurrence independently converts each occurrence across DST
+  ---
+  duration_ms: 1.660166
+  type: 'test'
+  ...
+# Subtest: student and teacher local dates can differ
+ok 105 - student and teacher local dates can differ
+  ---
+  duration_ms: 0.648549
+  type: 'test'
+  ...
+# Subtest: Kathmandu quarter-hour offset converts exactly
+ok 106 - Kathmandu quarter-hour offset converts exactly
+  ---
+  duration_ms: 0.436626
+  type: 'test'
+  ...
+# Subtest: New York spring gap has zero matching instants
+ok 107 - New York spring gap has zero matching instants
+  ---
+  duration_ms: 0.266194
+  type: 'test'
+  ...
+# Subtest: New York repeated autumn hour has two matching instants and is not guessed
+ok 108 - New York repeated autumn hour has two matching instants and is not guessed
+  ---
+  duration_ms: 1.030375
+  type: 'test'
+  ...
+# Subtest: Lord Howe half-hour clock transition is supported
+ok 109 - Lord Howe half-hour clock transition is supported
+  ---
+  duration_ms: 0.715628
+  type: 'test'
+  ...
+# Subtest: a lesson crossing a clock jump is explicitly skipped
+ok 110 - a lesson crossing a clock jump is explicitly skipped
+  ---
+  duration_ms: 0.18234
+  type: 'test'
+  ...
+# Subtest: recurrence reports skipped DST dates instead of silently shifting lessons
+ok 111 - recurrence reports skipped DST dates instead of silently shifting lessons
+  ---
+  duration_ms: 0.481833
+  type: 'test'
+  ...
+# Subtest: end-of-day lesson can end at next-day midnight
+ok 112 - end-of-day lesson can end at next-day midnight
+  ---
+  duration_ms: 0.137003
+  type: 'test'
+  ...
+# Subtest: weekly slots cannot cross teacher midnight
+ok 113 - weekly slots cannot cross teacher midnight
+  ---
+  duration_ms: 0.099026
+  type: 'test'
+  ...
+# Subtest: availability supports Sunday and multiple non-overlapping windows
+ok 114 - availability supports Sunday and multiple non-overlapping windows
+  ---
+  duration_ms: 0.177753
+  type: 'test'
+  ...
+# Subtest: overlapping active windows are rejected; inactive overlap is ignored
+ok 115 - overlapping active windows are rejected; inactive overlap is ignored
+  ---
+  duration_ms: 0.112056
+  type: 'test'
+  ...
+# Subtest: overnight windows must be split across two weekdays
+ok 116 - overnight windows must be split across two weekdays
+  ---
+  duration_ms: 0.079828
+  type: 'test'
+  ...
+# Subtest: lesson grid is anchored to teacher window start and administrator duration
+ok 117 - lesson grid is anchored to teacher window start and administrator duration
+  ---
+  duration_ms: 0.146667
+  type: 'test'
+  ...
+# Subtest: duplicate weekdays are rejected rather than multiplying enrollment rows
+ok 118 - duplicate weekdays are rejected rather than multiplying enrollment rows
+  ---
+  duration_ms: 0.106978
+  type: 'test'
+  ...
+# Subtest: course start inclusive and calendar-month end exclusive
+ok 119 - course start inclusive and calendar-month end exclusive
+  ---
+  duration_ms: 0.674047
+  type: 'test'
+  ...
+# Subtest: adjacent lessons do not overlap; partial and containing intervals do
+ok 120 - adjacent lessons do not overlap; partial and containing intervals do
+  ---
+  duration_ms: 0.127368
+  type: 'test'
+  ...
+# Subtest: conflict checking catches a later recurring date, not just the first week
+ok 121 - conflict checking catches a later recurring date, not just the first week
+  ---
+  duration_ms: 0.400162
+  type: 'test'
+  ...
+# Subtest: configuration validates allowed durations and finite limits
+ok 122 - configuration validates allowed durations and finite limits
+  ---
+  duration_ms: 0.200988
+  type: 'test'
+  ...
+# Subtest: monthly invoices use original calendar anchor, not 30-day increments
+ok 123 - monthly invoices use original calendar anchor, not 30-day increments
+  ---
+  duration_ms: 0.807805
+  type: 'test'
+  ...
+# Subtest: local date filter day boundary is converted to UTC
+ok 124 - local date filter day boundary is converted to UTC
+  ---
+  duration_ms: 0.122711
+  type: 'test'
+  ...
+# Subtest: every tested world zone round-trips an ordinary local timestamp
+ok 125 - every tested world zone round-trips an ordinary local timestamp
+  ---
+  duration_ms: 2.372329
+  type: 'test'
+  ...
+1..125
+# tests 138
+# suites 0
+# pass 138
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 313.457818

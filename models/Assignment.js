@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const assignmentSchema = new mongoose.Schema({
+  enrollment: {type:mongoose.Schema.Types.ObjectId,ref:'Enrollment'},
   student: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',

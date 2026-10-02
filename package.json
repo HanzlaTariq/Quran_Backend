@@ -1,6 +1,6 @@
 {
   "name": "noor-academy-api",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -12,7 +12,7 @@
     "setup": "node scripts/setup.js",
     "data:sync": "node scripts/sync-data.js",
     "admin:create": "node --env-file=.env scripts/create-admin.js",
-    "test": "node --test tests/core.test.js tests/library.test.js tests/rate-limit-store.test.js tests/timetable.test.js tests/otp-core.test.js tests/profile-core.test.js",
+    "test": "node --test tests/core.test.js tests/library.test.js tests/rate-limit-store.test.js tests/timetable.test.js tests/otp-core.test.js tests/profile-core.test.js tests/classroom.test.js tests/daily.test.js",
     "test:integration": "node --env-file=.env.testing --test tests/integration.test.js",
     "messages:encrypt": "node --env-file=.env scripts/encrypt-messages.js",
     "setup:test": "node scripts/setup-test.js",
@@ -22,7 +22,9 @@
     "build": "node scripts/sync-data.js",
     "email:check": "node --env-file=.env scripts/check-email.js",
     "schedule:audit": "node --env-file=.env scripts/audit-schedules.js",
-    "test:unit": "node --test tests/core.test.js tests/library.test.js tests/rate-limit-store.test.js tests/timetable.test.js tests/otp-core.test.js tests/profile-core.test.js"
+    "test:unit": "node --test tests/core.test.js tests/library.test.js tests/rate-limit-store.test.js tests/timetable.test.js tests/otp-core.test.js tests/profile-core.test.js tests/classroom.test.js tests/daily.test.js",
+    "classroom:migrate": "node --env-file=.env scripts/migrate-classroom.js",
+    "classroom:cleanup": "node --env-file=.env scripts/cleanup-classrooms.js"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
