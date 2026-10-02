@@ -1,0 +1,339 @@
+
+> noor-academy-api@2.0.1 test
+> node --test tests/*.test.js
+
+TAP version 13
+# Subtest: text trims normal fields and enforces boundaries
+ok 1 - text trims normal fields and enforces boundaries
+  ---
+  duration_ms: 1.863639
+  type: 'test'
+  ...
+# Subtest: text rejects Mongo operator objects and control characters
+ok 2 - text rejects Mongo operator objects and control characters
+  ---
+  duration_ms: 0.329294
+  type: 'test'
+  ...
+# Subtest: text permits meaningful multilingual paragraphs
+ok 3 - text permits meaningful multilingual paragraphs
+  ---
+  duration_ms: 0.165329
+  type: 'test'
+  ...
+# Subtest: integer accepts numeric form values and rejects fractions/ranges
+ok 4 - integer accepts numeric form values and rejects fractions/ranges
+  ---
+  duration_ms: 0.372439
+  type: 'test'
+  ...
+# Subtest: integer rejects coercible nonnumeric input types
+ok 5 - integer rejects coercible nonnumeric input types
+  ---
+  duration_ms: 1.765151
+  type: 'test'
+  ...
+# Subtest: money preserves nonnegative two-decimal values and rejects invalid values
+ok 6 - money preserves nonnegative two-decimal values and rejects invalid values
+  ---
+  duration_ms: 0.286961
+  type: 'test'
+  ...
+# Subtest: email supports plus addressing and long domains
+ok 7 - email supports plus addressing and long domains
+  ---
+  duration_ms: 0.309775
+  type: 'test'
+  ...
+# Subtest: password preserves whitespace rather than silently changing a secret
+ok 8 - password preserves whitespace rather than silently changing a secret
+  ---
+  duration_ms: 0.128844
+  type: 'test'
+  ...
+# Subtest: password enforces bcrypt UTF-8 byte ceiling
+ok 9 - password enforces bcrypt UTF-8 byte ceiling
+  ---
+  duration_ms: 0.272139
+  type: 'test'
+  ...
+# Subtest: ObjectId validation rejects arbitrary Mongo operators and malformed IDs
+ok 10 - ObjectId validation rejects arbitrary Mongo operators and malformed IDs
+  ---
+  duration_ms: 0.450357
+  type: 'test'
+  ...
+# Subtest: choice is an explicit allowlist
+ok 11 - choice is an explicit allowlist
+  ---
+  duration_ms: 0.169384
+  type: 'test'
+  ...
+# Subtest: date validates invalid values
+ok 12 - date validates invalid values
+  ---
+  duration_ms: 0.39956
+  type: 'test'
+  ...
+# Subtest: external links require HTTPS and forbid embedded credentials
+ok 13 - external links require HTTPS and forbid embedded credentials
+  ---
+  duration_ms: 0.224978
+  type: 'test'
+  ...
+# Subtest: Arabic search normalization handles diacritics and alef variants
+ok 14 - Arabic search normalization handles diacritics and alef variants
+  ---
+  duration_ms: 0.249265
+  type: 'test'
+  ...
+# Subtest: search normalization handles Latin accents and Urdu character variants
+ok 15 - search normalization handles Latin accents and Urdu character variants
+  ---
+  duration_ms: 0.086991
+  type: 'test'
+  ...
+# Subtest: pagination reports empty state without fabricated results
+ok 16 - pagination reports empty state without fabricated results
+  ---
+  duration_ms: 1.0451
+  type: 'test'
+  ...
+# Subtest: pagination slices and validates upper limits
+ok 17 - pagination slices and validates upper limits
+  ---
+  duration_ms: 0.13944
+  type: 'test'
+  ...
+# Subtest: secure session token shape and uniqueness
+ok 18 - secure session token shape and uniqueness
+  ---
+  duration_ms: 0.442975
+  type: 'test'
+  ...
+# Subtest: session token hashing is deterministic and does not store the raw token
+ok 19 - session token hashing is deterministic and does not store the raw token
+  ---
+  duration_ms: 0.508393
+  type: 'test'
+  ...
+# Subtest: CSRF HMAC depends on the configured secret
+ok 20 - CSRF HMAC depends on the configured secret
+  ---
+  duration_ms: 0.397998
+  type: 'test'
+  ...
+# Subtest: constant-time comparator rejects wrong values and types
+ok 21 - constant-time comparator rejects wrong values and types
+  ---
+  duration_ms: 0.169745
+  type: 'test'
+  ...
+# Subtest: AES-GCM round trip supports Arabic and Unicode messages
+ok 22 - AES-GCM round trip supports Arabic and Unicode messages
+  ---
+  duration_ms: 0.870207
+  type: 'test'
+  ...
+# Subtest: AES-GCM uses a fresh IV for identical plaintext
+ok 23 - AES-GCM uses a fresh IV for identical plaintext
+  ---
+  duration_ms: 0.202424
+  type: 'test'
+  ...
+# Subtest: AES-GCM rejects the wrong key
+ok 24 - AES-GCM rejects the wrong key
+  ---
+  duration_ms: 0.216064
+  type: 'test'
+  ...
+# Subtest: AES-GCM rejects ciphertext tampering
+ok 25 - AES-GCM rejects ciphertext tampering
+  ---
+  duration_ms: 0.20619
+  type: 'test'
+  ...
+# Subtest: AES-GCM rejects tampered authentication tag
+ok 26 - AES-GCM rejects tampered authentication tag
+  ---
+  duration_ms: 0.239851
+  type: 'test'
+  ...
+# Subtest: invalid encryption key fails rather than storing plaintext
+ok 27 - invalid encryption key fails rather than storing plaintext
+  ---
+  duration_ms: 0.089584
+  type: 'test'
+  ...
+# Subtest: legacy plaintext is readable for controlled migration only
+ok 28 - legacy plaintext is readable for controlled migration only
+  ---
+  duration_ms: 0.05374
+  type: 'test'
+  ...
+# Subtest: CSV quoting escapes quotes, commas and multiline text
+ok 29 - CSV quoting escapes quotes, commas and multiline text
+  ---
+  duration_ms: 0.202945
+  type: 'test'
+  ...
+# Subtest: CSV export prevents spreadsheet-formula injection
+ok 30 - CSV export prevents spreadsheet-formula injection
+  ---
+  duration_ms: 0.157677
+  type: 'test'
+  ...
+# Subtest: ID comparison supports populated and unpopulated document references
+ok 31 - ID comparison supports populated and unpopulated document references
+  ---
+  duration_ms: 0.092048
+  type: 'test'
+  ...
+# Subtest: real server authorization, academy workflow and encrypted chat
+ok 32 - real server authorization, academy workflow and encrypted chat # SKIP
+  ---
+  duration_ms: 0.883097
+  type: 'test'
+  ...
+# Subtest: library contracts using isolated temporary non-religious fixture files
+    # Subtest: missing data returns actionable service-unavailable error
+    ok 1 - missing data returns actionable service-unavailable error
+      ---
+      duration_ms: 2.161306
+      type: 'test'
+      ...
+    # Subtest: surah index excludes verse content and supplies actual lengths
+    ok 2 - surah index excludes verse content and supplies actual lengths
+      ---
+      duration_ms: 1.160603
+      type: 'test'
+      ...
+    # Subtest: surah number boundaries are enforced
+    ok 3 - surah number boundaries are enforced
+      ---
+      duration_ms: 0.989887
+      type: 'test'
+      ...
+    # Subtest: Quran reference lookup returns the selected reference
+    ok 4 - Quran reference lookup returns the selected reference
+      ---
+      duration_ms: 11.453554
+      type: 'test'
+      ...
+    # Subtest: Quran translation search matches downloaded fields
+    ok 5 - Quran translation search matches downloaded fields
+      ---
+      duration_ms: 2.25675
+      type: 'test'
+      ...
+    # Subtest: Quran Arabic search ignores diacritics
+    ok 6 - Quran Arabic search ignores diacritics
+      ---
+      duration_ms: 0.974754
+      type: 'test'
+      ...
+    # Subtest: Hadith book availability reflects actual files
+    ok 7 - Hadith book availability reflects actual files
+      ---
+      duration_ms: 7.020926
+      type: 'test'
+      ...
+    # Subtest: Hadith number lookup is exact rather than a substring match
+    ok 8 - Hadith number lookup is exact rather than a substring match
+      ---
+      duration_ms: 1.193643
+      type: 'test'
+      ...
+    # Subtest: Hadith text search excludes empty entries
+    ok 9 - Hadith text search excludes empty entries
+      ---
+      duration_ms: 0.94557
+      type: 'test'
+      ...
+    # Subtest: Hadith chapters are filtered against edition reference numbers
+    ok 10 - Hadith chapters are filtered against edition reference numbers
+      ---
+      duration_ms: 0.933983
+      type: 'test'
+      ...
+    # Subtest: unsupported collection and language cannot become filesystem paths
+    ok 11 - unsupported collection and language cannot become filesystem paths
+      ---
+      duration_ms: 0.502424
+      type: 'test'
+      ...
+    # Subtest: daily selection is deterministic for the same UTC day
+    ok 12 - daily selection is deterministic for the same UTC day
+      ---
+      duration_ms: 1.976769
+      type: 'test'
+      ...
+    # Subtest: manifest/source status is available without fabricated content
+    ok 13 - manifest/source status is available without fabricated content
+      ---
+      duration_ms: 1.142436
+      type: 'test'
+      ...
+    1..13
+ok 33 - library contracts using isolated temporary non-religious fixture files
+  ---
+  duration_ms: 47.26292
+  type: 'test'
+  ...
+# Subtest: rate-limit storage hashes keys and isolates namespaces
+ok 34 - rate-limit storage hashes keys and isolates namespaces
+  ---
+  duration_ms: 1.125781
+  type: 'test'
+  ...
+# Subtest: increment issues a single atomic upsert with a future expiry
+ok 35 - increment issues a single atomic upsert with a future expiry
+  ---
+  duration_ms: 0.894673
+  type: 'test'
+  ...
+# Subtest: increment returns an existing counter and reset time
+ok 36 - increment returns an existing counter and reset time
+  ---
+  duration_ms: 0.243376
+  type: 'test'
+  ...
+# Subtest: first-write duplicate race is retried once
+ok 37 - first-write duplicate race is retried once
+  ---
+  duration_ms: 0.285098
+  type: 'test'
+  ...
+# Subtest: database failure propagates instead of failing open
+ok 38 - database failure propagates instead of failing open
+  ---
+  duration_ms: 0.515775
+  type: 'test'
+  ...
+# Subtest: malformed database counter is rejected
+ok 39 - malformed database counter is rejected
+  ---
+  duration_ms: 0.198928
+  type: 'test'
+  ...
+# Subtest: decrement never selects a zero or negative counter
+ok 40 - decrement never selects a zero or negative counter
+  ---
+  duration_ms: 0.274322
+  type: 'test'
+  ...
+# Subtest: reset deletes only the specified hashed bucket
+ok 41 - reset deletes only the specified hashed bucket
+  ---
+  duration_ms: 0.21955
+  type: 'test'
+  ...
+1..41
+# tests 54
+# suites 0
+# pass 53
+# fail 0
+# cancelled 0
+# skipped 1
+# todo 0
+# duration_ms 125.03035

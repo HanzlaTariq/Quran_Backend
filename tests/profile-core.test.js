@@ -1,0 +1,14 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {languages,profileFields,avatarBytes} from '../src/profile-core.js';
+const bad=f=>assert.throws(f,e=>e.status===400);
+const valid={name:'Test Student',country:'Pakistan',city:'Lahore',timezone:'Asia/Karachi',languages:'English, Urdu',gender:'unspecified'};
+test('profile retains country, location, IANA zone, gender and language fields',()=>{const p=profileFields(valid,{required:true});assert.equal(p.city,'Lahore');assert.deepEqual(p.languages,['english','urdu']);assert.equal(p.timezone,'Asia/Karachi');});
+test('registration requires profile country, languages and time zone',()=>{for(const key of ['country','languages','timezone','name']){const p={...valid};delete p[key];bad(()=>profileFields(p,{required:true}));}});
+test('language normalization trims and deduplicates; blank optional expertise is valid',()=>{assert.deepEqual(languages(' English, english, Urdu, '),['english','urdu']);assert.deepEqual(languages('',false),[]);bad(()=>languages(' , '));bad(()=>languages({$ne:null}));});
+test('profile update cannot change role, email, verified flag or approval',()=>{assert.deepEqual(profileFields({role:'admin',email:'injected@example.test',isVerified:true,isApproved:true}),{});});
+test('profile age and gender are explicitly validated',()=>{assert.equal(profileFields({age:'19'}).age,19);assert.equal(profileFields({age:''}).age,null);bad(()=>profileFields({age:2}));bad(()=>profileFields({gender:{$ne:null}}));});
+const jpeg='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAAEAAQDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q==';
+test('small raster JPEG avatar is accepted',()=>{const b=avatarBytes(jpeg);assert.equal(b.readUInt16BE(0),0xffd8);});
+test('SVG, HTML, external URLs and invalid JPEG are rejected',()=>{for(const v of ['data:image/svg+xml;base64,AAAA','https://example.test/avatar.jpg','data:text/html;base64,AAAA','data:image/jpeg;base64,AAAA',{}])bad(()=>avatarBytes(v));});
+test('oversized avatars are rejected',()=>bad(()=>avatarBytes('data:image/jpeg;base64,'+Buffer.alloc(201*1024).toString('base64'))));

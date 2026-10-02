@@ -1,0 +1,33 @@
+import mongoose from 'mongoose';
+export { default as User } from '../models/User.js';
+export { default as Student } from '../models/Student.js';
+export { default as Ulma } from '../models/Ulma.js';
+export { default as Course } from '../models/Course.js';
+export { default as Class } from '../models/Class.js';
+export { default as Enrollment } from '../models/Enrollment.js';
+export { default as Fee } from '../models/Fee.js';
+export { default as Attendance } from '../models/Attendance.js';
+export { default as Assignment } from '../models/Assignment.js';
+export { default as Conversation } from '../models/Conversation.js';
+export { default as Message } from '../models/Message.js';
+const S = mongoose.Schema, ref = name => ({type: S.Types.ObjectId, ref: name});
+const sessionSchema = new S({tokenHash: {type: String, unique: true}, user: ref('User'), csrf: String, otpVerifiedAt:Date, expiresAt: Date}, {timestamps:true});
+sessionSchema.index({expiresAt:1}, {expireAfterSeconds:0});
+export const Session = mongoose.model('AcademySession', sessionSchema);
+const resetSchema = new S({tokenHash: {type:String,unique:true}, user:ref('User'), expiresAt:Date});
+resetSchema.index({expiresAt:1}, {expireAfterSeconds:0});
+export const Reset = mongoose.model('AcademyReset', resetSchema);
+export const Audit = mongoose.model('AcademyAudit', new S({actor:ref('User'), action:String, record:String}, {timestamps:true}));
+export const Notice = mongoose.model('AcademyNotice', new S({user:ref('User'), title:String, body:String, href:String, read:{type:Boolean,default:false}}, {timestamps:true}));
+export const Config = mongoose.model('AcademyConfig', new S({key:{type:String,unique:true}, academyName:{type:String,default:'Noor Academy'}, contactEmail:{type:String,default:''}, announcement:{type:String,default:''}, registrationOpen:{type:Boolean,default:true}, paymentInstructions:{type:String,default:''},booking:{slotMinutes:{type:Number,default:30},holdHours:{type:Number,default:24},bookingLeadHours:{type:Number,default:2},bookingWindowDays:{type:Number,default:60},joinEarlyMinutes:{type:Number,default:10},feeGraceDays:{type:Number,default:5}}}, {timestamps:true}));
+
+// Durable state: survives serverless instances/restarts. No OTP plaintext is persisted.
+const otpSchema=new S({user:{...ref('User'),unique:true},ticketHash:{type:String,unique:true},codeHash:String,purpose:{type:String,enum:['register','login']},attempts:{type:Number,default:0},sends:{type:Number,default:1},lastSentAt:Date,expiresAt:Date,absoluteExpiresAt:Date,consumedAt:Date},{timestamps:true});
+otpSchema.index({absoluteExpiresAt:1},{expireAfterSeconds:0});
+export const OtpChallenge=mongoose.model('AcademyOtpChallenge',otpSchema);
+export const BookingMutex=mongoose.model('AcademyBookingMutex',new S({_id:String,revision:{type:Number,default:0}}));
+const reservationSchema=new S({enrollment:ref('Enrollment'),classId:ref('Class'),student:ref('Student'),ulma:ref('Ulma'),utcStart:Date,utcEnd:Date,status:{type:String,enum:['pending','confirmed']},expiresAt:Date,occurrenceKey:{type:String,unique:true}},{timestamps:true});
+reservationSchema.index({ulma:1,utcStart:1,utcEnd:1});
+reservationSchema.index({student:1,utcStart:1,utcEnd:1});
+reservationSchema.index({expiresAt:1},{expireAfterSeconds:0});
+export const Reservation=mongoose.model('AcademyReservation',reservationSchema);

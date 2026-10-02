@@ -4,7 +4,7 @@ const courseSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    enum: ['Nazra', 'Hifz', 'Tajweed', 'Tafseer', 'Arabic']
+    maxlength: 100
   },
   description: {
     type: String,
@@ -18,6 +18,8 @@ const courseSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  level: {type: String, default: 'All levels'},
+  currency: {type: String, default: 'PKR'},
   curriculum: [{
     week: Number,
     topic: String,

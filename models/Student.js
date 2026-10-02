@@ -13,12 +13,12 @@ const studentSchema = new mongoose.Schema({
   },
   age: {
     type: Number,
-    required: true
+    default: null
   },
   gender: {
     type: String,
-    enum: ['male', 'female'],
-    required: true
+    enum: ['male', 'female', 'unspecified'],
+    default: 'unspecified'
   },
   currentCourse: {
     type: mongoose.Schema.Types.ObjectId,

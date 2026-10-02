@@ -12,12 +12,12 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Please add an email'],
     unique: true,
     lowercase: true,
-    match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Please add a valid email']
+    match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Please add a valid email']
   },
   password: {
     type: String,
     required: [true, 'Please add a password'],
-    minlength: 6,
+    minlength: 10,
     select: false
   },
   role: {
@@ -25,13 +25,24 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'ulma', 'admin'],
     default: 'student'
   },
+  bookmarks: { type: [String], default: [] },
+  reading: { surah: {type: Number, default: 1}, ayah: {type: Number, default: 1} },
+  readingDays: {type: [String], default: []},
+  theme: {type: String, enum: ['light','dark'], default: 'light'},
+  translation: {type: String, enum: ['en','ur','none'], default: 'en'},
   profileImage: {
     type: String,
     default: 'default.jpg'
   },
+  city: {type:String,default:''},
+  gender: {type:String,enum:['male','female','unspecified'],default:'unspecified'},
+  age: {type:Number,default:null},
+  photoVersion: {type:Number,default:0},
+  photoData: {type:Buffer,select:false},
+  verifiedAt: Date,
   phone: {
     type: String,
-    required: [true, 'Please add a phone number']
+    default: ''
   },
   country: {
     type: String,
@@ -59,12 +70,9 @@ const userSchema = new mongoose.Schema({
     type: String
   },
 }, { timestamps: true });
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) {
-    next();
-  }
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+userSchema.pre('save', async function() {
+  if (!this.isModified('password')) return;
+  this.password = await bcrypt.hash(this.password, 12);
 });
 
 // Match user entered password to hashed password in database

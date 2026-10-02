@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
 const availabilitySlotSchema = new mongoose.Schema({
   day: {
     type: String,
-    enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+    enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
     required: true
   },
   startTime: {
@@ -36,6 +36,7 @@ const ulmaSchema = new mongoose.Schema({
     required: false
   },
   bio: String,
+  courses: [{type:mongoose.Schema.Types.ObjectId,ref:'Course'}],
   qualifications: [{ degree: String, institution: String, year: Number }],
   certificates: [{ name: String, fileUrl: String, issuedDate: Date }],
   experience: { type: Number, default: 0 },
@@ -53,7 +54,7 @@ const ulmaSchema = new mongoose.Schema({
 
   // 📚 Lecture / booked slots
   lectureSlots: [{
-    day: { type: String, enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] },
+    day: { type: String, enum: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] },
     startTime: String,
     endTime: String,
     enrollmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Enrollment' }

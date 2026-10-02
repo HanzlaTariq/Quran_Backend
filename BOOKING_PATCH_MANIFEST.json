@@ -1,0 +1,227 @@
+{
+  "project": "Noor Academy",
+  "version": "2.1.0",
+  "repository": "backend",
+  "patch_basis": "Original uploaded repository with Noor_Only_Updated_Files.zip (2.0.1) and no-watch backend restart fix applied",
+  "apply_to": "Existing matching repository root; merge directories, replace matching files. Do not delete src/models or nest a wrapper folder.",
+  "preserve": [
+    ".env",
+    ".env.testing",
+    "vercel.json",
+    "downloaded data/",
+    "node_modules/",
+    "SESSION_SECRET",
+    "CHAT_KEY"
+  ],
+  "deleted_files": [],
+  "files": [
+    {
+      "path": ".env.example",
+      "change": "updated",
+      "sha256": "b6849cc1a0213f31f8409611365fa1955e0aebecb16b56853bdf2e1dca3727d5",
+      "bytes": 1074,
+      "previous_sha256": "c89bc8c1e154d15488f20c2658be8e993cae7cc41c97e16468694d905017d0a0"
+    },
+    {
+      "path": "BOOKING_START_HERE.md",
+      "change": "new",
+      "sha256": "1b8a4f4b85ab06ce127a3eb4c463698b4b2bd5c8718b706c034dd9c4271941e1",
+      "bytes": 2962
+    },
+    {
+      "path": "docs/BOOKING_TEST_REPORT.md",
+      "change": "new",
+      "sha256": "bbbcf0a30ab8773ca1a4b525e61dfb8ee75677a0245a19783b55d8f0e6e1ddf8",
+      "bytes": 6120
+    },
+    {
+      "path": "docs/BOOKING_UPDATE.md",
+      "change": "new",
+      "sha256": "90fc13067f4f739325e46df45053a8df56ce6ac03a9539968e77daad57dad52f",
+      "bytes": 16573
+    },
+    {
+      "path": "models/Class.js",
+      "change": "updated",
+      "sha256": "d3cf47b35ca5ccd0854d84da793e473571239b32a336e6eec3019c4c9a199e36",
+      "bytes": 1512,
+      "previous_sha256": "d9ff7f13920b2553ecd176126b02e7f0b92e20399176673923b300e5b2adcf18"
+    },
+    {
+      "path": "models/Enrollment.js",
+      "change": "updated",
+      "sha256": "967b3cf33e821a6b3276895adcc34c05cb7ffae8bb851076fa44a59d37ae542e",
+      "bytes": 3110,
+      "previous_sha256": "74744ece65ca8be6516f8543cb62e69c9f15d8233de3bffc902596fef1bd9f1c"
+    },
+    {
+      "path": "models/Fee.js",
+      "change": "updated",
+      "sha256": "3385a9deed4bbe1cfaaa41f0d45d073481665b314b4d20ac70aabc10d8f0e713",
+      "bytes": 2631,
+      "previous_sha256": "2d26a6457f240ce99cbd20249ae6984ebb24af8e92aeabd4c07e1cd9d70ea8d5"
+    },
+    {
+      "path": "models/Ulma.js",
+      "change": "updated",
+      "sha256": "42235791f88bd1fa9164d9f1d0812cf1e724e1e75de08c6f867780bbf8e8a6df",
+      "bytes": 2014,
+      "previous_sha256": "4ae93637b1cf56a5b71846f5805a71933b0e7f3a27cb074177d7eea6455c7473"
+    },
+    {
+      "path": "models/User.js",
+      "change": "updated",
+      "sha256": "a85b37b92a8df2ae5aa85b48a23724889afe7c7ea16bd5d770cccdcae67f871a",
+      "bytes": 2039,
+      "previous_sha256": "d87e354fc9cb00c6f6071f7e1094ce05ad0d6fffd31d93597bc30c990f3d6f40"
+    },
+    {
+      "path": "package.json",
+      "change": "updated",
+      "sha256": "1ddb7759b0802dd37d03ec83962f70f715b0b0fe98f3e1e0e7f90a30839865fe",
+      "bytes": 1637,
+      "previous_sha256": "27550d04915e84fcf5d225591360d3f569a8222778430b5919250efa474bfab2"
+    },
+    {
+      "path": "scripts/audit-schedules.js",
+      "change": "new",
+      "sha256": "f7dd14b567cf46453b39c85c8c2d27fbf262e44fa2dc420e4ad5097472d266d0",
+      "bytes": 2176
+    },
+    {
+      "path": "scripts/check-email.js",
+      "change": "new",
+      "sha256": "e677d095206e32d4eac85d5756de38679878619a0244e62d50abd3d66c1be831",
+      "bytes": 586
+    },
+    {
+      "path": "scripts/create-admin.js",
+      "change": "updated",
+      "sha256": "d244c40f9286d2d6c186d32f84aaadba51ef895c9083b20e1e60bf429ef57188",
+      "bytes": 1216,
+      "previous_sha256": "e1060f10aab3e8a16d8262b70491dd2686f489b2c4931087a112f7039ba8c4af"
+    },
+    {
+      "path": "scripts/setup-test.js",
+      "change": "updated",
+      "sha256": "b9d039427818b3b43e1f405ffafe8d49527c6794fe8b48ea3643d9890a4cb0c4",
+      "bytes": 1071,
+      "previous_sha256": "bbfdfc8ea8601f891e3d69120815379120234034154f6a07cf9736685e5b13a9"
+    },
+    {
+      "path": "src/academy.js",
+      "change": "updated",
+      "sha256": "c88d28ee65f0aa5991b01ca2fe4d1f1abd0d29b02a1aaad20cfeee4eb4c67031",
+      "bytes": 16021,
+      "previous_sha256": "cdcbe28269c0b3f34c1c54df4f54dbd1aa388a277ea1ddbdf55da0e5b0291281"
+    },
+    {
+      "path": "src/access.js",
+      "change": "new",
+      "sha256": "a9ea503d9ae8b214361cdce243c74c7ac4b83c7f01bfba1a17828389c6384def",
+      "bytes": 2037
+    },
+    {
+      "path": "src/auth.js",
+      "change": "updated",
+      "sha256": "41315d14ee023cd29645e53567e5805120c29a7fac23b7094f0f2c9d9b4f8590",
+      "bytes": 12043,
+      "previous_sha256": "82d21ef8d8c4fd155a493f8480f886f5aba2296f10b089fc0e3e81b436bc5b7e"
+    },
+    {
+      "path": "src/booking-service.js",
+      "change": "new",
+      "sha256": "f3b4f10c6fa740d6541f1fcdc1bf1383ad5213b9d25470328dc2a22c4474c1eb",
+      "bytes": 25282
+    },
+    {
+      "path": "src/booking.js",
+      "change": "new",
+      "sha256": "066adbdfbf2510cbad0a1e347c4c8d362b72b91868229d5fff509ee7df504f8a",
+      "bytes": 12741
+    },
+    {
+      "path": "src/email.js",
+      "change": "new",
+      "sha256": "71e333bc4f18d8472a5b7136c10b9ef93b9d8918f392800ae14bd346f23717c5",
+      "bytes": 1877
+    },
+    {
+      "path": "src/models.js",
+      "change": "updated",
+      "sha256": "c7e74d14ea6fa772b007669341dea9b45178adb7c72e38c245df97de8ac745b3",
+      "bytes": 3355,
+      "previous_sha256": "25d75208dc021aaadebe2f538b7a50880e25d3a7cd860efab2d55190afad267b"
+    },
+    {
+      "path": "src/otp-core.js",
+      "change": "new",
+      "sha256": "b4e8fa81347e81448086135456c75c8a2f880cd3fb4a0e116ce61a96f6fc8a4d",
+      "bytes": 762
+    },
+    {
+      "path": "src/otp.js",
+      "change": "new",
+      "sha256": "4141db8f63f5f0452b6d96b0954fe7ce33a8177fac2c6e83d166c632099ebade",
+      "bytes": 4686
+    },
+    {
+      "path": "src/profile-core.js",
+      "change": "new",
+      "sha256": "952dcce711a97c55f81a947f9411c1bd1db143d9a4e6f09d6007143d463e444e",
+      "bytes": 2638
+    },
+    {
+      "path": "src/server.js",
+      "change": "updated",
+      "sha256": "a71760f9a8538c499102072e63136869cc3bf4ac79b49d31755a6c96f8e7fa2e",
+      "bytes": 4796,
+      "previous_sha256": "c65518adda30d774cc25c7007a5e8880bf8e763fe649d2600c35153b9bc7fd37"
+    },
+    {
+      "path": "src/socket.js",
+      "change": "updated",
+      "sha256": "f258345e9c2fca1f4aba520afa115211d46dcf62987134be182f344421904085",
+      "bytes": 5729,
+      "previous_sha256": "2e8b61d51464a922a77efe14f1bbab5e93075d4d84f610e05ce1e3fcf33ad7ca"
+    },
+    {
+      "path": "src/timetable-core.js",
+      "change": "new",
+      "sha256": "003baa0002f704182f4b9be232604f79e49aa551f12742e89071ff68122c54ce",
+      "bytes": 10026
+    },
+    {
+      "path": "tests/helpers/local-smtp.js",
+      "change": "new",
+      "sha256": "bfb9597ca1b1c480512f3b43b0acdb160cff20b945a8097994e530af677e5b64",
+      "bytes": 2282
+    },
+    {
+      "path": "tests/integration.test.js",
+      "change": "updated",
+      "sha256": "478e0ed171abf279a956c93d90b9279691ed5f67b87be0e7b8a049416f908461",
+      "bytes": 13412,
+      "previous_sha256": "b0b799cf4ed22377bc678689b6a6c7b119e4c3eafa9ce654e859f2a313afeb87"
+    },
+    {
+      "path": "tests/otp-core.test.js",
+      "change": "new",
+      "sha256": "881a6fb53bcffbcb81c902ecc17495e0c3a23e8d2b0d55caaadf678ff4070b5b",
+      "bytes": 1856
+    },
+    {
+      "path": "tests/profile-core.test.js",
+      "change": "new",
+      "sha256": "41984848d8f5b27bcd012b5af49e0c777a078fcca7a0d1384b10a7b79bc98801",
+      "bytes": 2880
+    },
+    {
+      "path": "tests/timetable.test.js",
+      "change": "new",
+      "sha256": "937e5956897bc14ed8a4ffdd752fd062d7a3550c649e7347e9e5db465aa016bd",
+      "bytes": 8608
+    }
+  ],
+  "note": "This manifest excludes itself; it is not a standalone full project. See BOOKING_START_HERE.md."
+}

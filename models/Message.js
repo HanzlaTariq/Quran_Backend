@@ -9,7 +9,11 @@ const messageSchema = new Schema({
   senderId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   receiverId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   message: { type: String, required: true },
+  clientId: { type: String },
+  deletedAt: Date,
   isRead: { type: Boolean, default: false }
 }, { timestamps: true });
 
+messageSchema.index({ senderId: 1, clientId: 1 }, { unique: true, partialFilterExpression: { clientId: { $type: 'string' } } });
+messageSchema.index({ conversationId: 1, createdAt: -1, _id: -1 });
 export default mongoose.model('Message', messageSchema);

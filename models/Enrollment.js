@@ -2,7 +2,15 @@ import mongoose from 'mongoose';
 
 const enrollmentSchema = new mongoose.Schema(
   {
-    // 🔗 Core Relations
+    activeRequestKey:{type:String},
+    currency:{type:String,default:'PKR'},
+    courseDuration:{type:Number},
+    holdExpiresAt:Date,
+    generatedAt:Date,
+    classesCount:{type:Number,default:0},
+    invoiceCount:{type:Number,default:0},
+    bookingVersion:{type:Number},
+    // Core relations
     student: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Student',
@@ -32,10 +40,18 @@ const enrollmentSchema = new mongoose.Schema(
     schedule: {
     days: [{
       type: String,
-      enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat']
+      enum: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
     }],
     utcStart: Date,
-    utcEnd: Date
+    utcEnd: Date,
+    timeZone:String,
+    studentTimeZone:String,
+    firstDate:String,
+    untilDate:String,
+    slotMinutes:Number,
+    slots:[{day:String,startTime:String,_id:false}],
+    firstOccurrences:[{utcStart:Date,utcEnd:Date,day:String,startTime:String,_id:false}],
+    skipped:[{date:String,time:String,reason:String,_id:false}]
   },
 
     // 💰 Billing Info
@@ -63,6 +79,7 @@ const enrollmentSchema = new mongoose.Schema(
         'completed',  // finished course
         'cancelled',  // dropped
         'rejected',
+        'expired',
       ],
       default: 'pending',
     },
@@ -106,4 +123,7 @@ const enrollmentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+enrollmentSchema.index({activeRequestKey:1},{unique:true,partialFilterExpression:{activeRequestKey:{$type:'string'}}});
+enrollmentSchema.index({ulma:1,status:1});
+enrollmentSchema.index({student:1,status:1});
 export default mongoose.model('Enrollment', enrollmentSchema);

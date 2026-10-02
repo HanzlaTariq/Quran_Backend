@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {OTP_RULES,newOtp,otpHash,matchesOtp,validateTicket} from '../src/otp-core.js';
+import {hash} from '../src/core.js';
+const secret='test-only-not-a-real-secret',ticketHash=hash('test-ticket');
+test('OTP generator yields exactly six decimal digits, including leading zeros',()=>{for(let i=0;i<500;i++)assert.match(newOtp(),/^\d{6}$/);});
+test('OTP HMAC is deterministic but is not plaintext',()=>{const h=otpHash(ticketHash,'login','012345',secret);assert.match(h,/^[a-f0-9]{64}$/);assert.equal(h,otpHash(ticketHash,'login','012345',secret));assert.notEqual(h,'012345');});
+test('OTP digest is bound to purpose, ticket and server secret',()=>{const h=otpHash(ticketHash,'login','012345',secret);assert.notEqual(h,otpHash(ticketHash,'register','012345',secret));assert.notEqual(h,otpHash(hash('other'),'login','012345',secret));assert.notEqual(h,otpHash(ticketHash,'login','012345','other-secret'));});
+test('OTP comparison rejects malformed, wrong and type-coerced inputs',()=>{const r={ticketHash,purpose:'login',codeHash:otpHash(ticketHash,'login','012345',secret)};assert.equal(matchesOtp(r,'012345',secret),true);for(const v of ['012346','12345','012345 ',12345,null,{},['012345']])assert.equal(matchesOtp(r,v,secret),false);});
+test('opaque verification tickets require the full unguessable hex form',()=>{assert.equal(validateTicket('a'.repeat(64)),'a'.repeat(64));for(const t of ['',null,{},'a'.repeat(63),'z'.repeat(64)])assert.throws(()=>validateTicket(t),e=>e.status===400);});
+test('OTP limits include TTL, resend cooldown, maximum guesses and absolute expiry',()=>{assert.equal(OTP_RULES.ttlMs,600000);assert.equal(OTP_RULES.cooldownMs,60000);assert.equal(OTP_RULES.maxAttempts,5);assert.ok(OTP_RULES.absoluteMs>OTP_RULES.ttlMs);assert.equal(OTP_RULES.maxSends,5);});
