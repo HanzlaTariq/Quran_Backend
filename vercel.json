@@ -3,6 +3,7 @@
   "framework": null,
   "installCommand": "npm install --package-lock=false",
   "buildCommand": "npm run build",
+  "outputDirectory": "public",
   "functions": {
     "api/index.js": {
       "includeFiles": "data/**",
